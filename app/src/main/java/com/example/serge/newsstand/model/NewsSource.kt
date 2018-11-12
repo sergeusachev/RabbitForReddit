@@ -1,4 +1,4 @@
-package com.example.serge.newsstand.response
+package com.example.serge.newsstand.model
 
 data class NewsSource(
         val id: String,
@@ -9,9 +9,3 @@ data class NewsSource(
         val language: String,
         val country: String
 )
-
-data class NewsSourceResponse(
-        val status: String,
-        val sources: List<NewsSource>
-)
-

@@ -1,12 +1,14 @@
 package com.example.serge.newsstand
 
 import com.example.serge.newsstand.response.NewsSourceResponse
+import com.example.serge.newsstand.response.TopHeadlinesNewsResponse
 import io.reactivex.Observable
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.Query
 
 interface NewsApi {
 
@@ -15,10 +17,11 @@ interface NewsApi {
     fun newsSourcesObservable(): Observable<NewsSourceResponse>
 
     /*@GET("everything")
-    fun newsEverythingObservable()
+    fun newsEverythingObservable(): Observable<>*/
 
+    @Headers("X-Api-Key: $API_KEY")
     @GET("top-headlines")
-    fun newsTopHeadlinesObservable()*/
+    fun newsTopHeadlinesObservable(@Query("country") countryCode: String): Observable<TopHeadlinesNewsResponse>
 
     companion object {
         private const val BASE_URL = "https://newsapi.org/v2/"

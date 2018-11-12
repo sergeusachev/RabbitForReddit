@@ -19,12 +19,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val newsApi = NewsApi.create()
+
         newsApi.newsSourcesObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { response -> Log.d(DEBUG_TAG, "\nResponse status: ${response.status}\nResponse count: ${response.sources.size}") },
+                        { response -> Log.d(DEBUG_TAG, "Response status: ${response.status}, response count: ${response.sources.size}") },
                         { throwable -> throwable.printStackTrace() }
+                )
+                .addTo(compositeDisposable)
+
+        newsApi.newsTopHeadlinesObservable("us")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { response -> Log.d(DEBUG_TAG, "Response status: ${response.status}, total results: ${response.totalResults}") },
+                        { throwable -> throwable.printStackTrace()}
                 )
                 .addTo(compositeDisposable)
     }

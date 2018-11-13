@@ -29,11 +29,11 @@ class MainActivity : AppCompatActivity() {
                 )
                 .addTo(compositeDisposable)
 
-        newsApi.newsTopHeadlinesObservable("us")
+        newsApi.newsTopHeadlinesObservable("ru", null, null, null, null, null)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { response -> Log.d(DEBUG_TAG, "Response status: ${response.status}, total results: ${response.totalResults}") },
+                        { response -> Log.d(DEBUG_TAG, response.articles.toString()) },
                         { throwable -> throwable.printStackTrace()}
                 )
                 .addTo(compositeDisposable)

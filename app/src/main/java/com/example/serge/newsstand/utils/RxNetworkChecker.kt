@@ -13,6 +13,7 @@ import io.reactivex.Single
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
+import javax.inject.Inject
 
 private val DEBUG_TAG = RxNetworkChecker::class.java.simpleName
 

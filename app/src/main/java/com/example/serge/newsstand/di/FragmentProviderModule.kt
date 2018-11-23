@@ -8,7 +8,9 @@ import dagger.android.ContributesAndroidInjector
 @Module
 abstract class FragmentProviderModule {
 
-    @ContributesAndroidInjector(modules = [NewsListFragmentModule::class])
+    @ContributesAndroidInjector(modules = [
+        NewsListFragmentModule::class,
+        NewsListViewModelFactoryModule::class])
     abstract fun contributeNewsListFragment(): NewsListFragment
 
     @ContributesAndroidInjector

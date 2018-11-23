@@ -5,5 +5,4 @@ import dagger.Module
 @Module
 class NewsListFragmentModule {
 
-
 }

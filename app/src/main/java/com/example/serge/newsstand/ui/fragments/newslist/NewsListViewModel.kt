@@ -45,6 +45,7 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
 
         observableTopHeadlines.connect()
         Log.d("", "")
+        Log.d("", "")
     }
 
     fun sendEvent() {

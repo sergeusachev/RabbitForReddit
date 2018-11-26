@@ -44,6 +44,7 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
                 //.doOnNext { Log.d(RESPONSE_DEBUG_TAG, "After observeOn thread is ${Thread.currentThread().name}") }
 
         observableTopHeadlines.connect()
+        Log.d("", "")
     }
 
     fun sendEvent() {

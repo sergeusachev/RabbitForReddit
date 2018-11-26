@@ -61,7 +61,7 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
     }
 
     data class RequestConfig(
-            val country: String? = null,
+            val country: String? = "ru",
             val category: String? = CategoriesEnum.GENERAL.categoryName,
             val sources: String? = null,
             val query: String? = null,

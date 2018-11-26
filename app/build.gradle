@@ -37,7 +37,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
-    //ViewModel, LiveDat
+    //ViewModel, LiveData
     implementation "androidx.lifecycle:lifecycle-extensions:2.0.0"
 
     //DesignSupportLibrary

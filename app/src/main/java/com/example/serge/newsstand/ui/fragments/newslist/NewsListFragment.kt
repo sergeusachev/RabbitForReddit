@@ -28,6 +28,11 @@ val RESPONSE_DEBUG_TAG = "Response_debug_tag"
 
 class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListener {
 
+    companion object {
+        const val SCROLL_PREV_TOTAL = "SCROLL_PREVIOUS_TOTAL_COUNT"
+        const val SCROLL_LOADING_STATE = "SCROLL_LOADING_STATE"
+    }
+
     @Inject
     lateinit var navigator: Navigator
 
@@ -36,6 +41,8 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
     private val compositeDisposable = CompositeDisposable()
     private val adapter = NewsListAdapter(this)
+
+    private lateinit var endlessRecyclerOnScrollListener: EndlessRecyclerOnScrollListener
 
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
@@ -54,8 +61,26 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
         val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
 
+        endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
+            override fun onLoadMore() {
+                viewModel.sendEvent()
+            }
+
+        }
+
+        if (savedInstanceState != null) {
+            val scrollPreviousTotal = savedInstanceState.getInt(SCROLL_PREV_TOTAL)
+            val scrollLoadingState = savedInstanceState.getBoolean(SCROLL_LOADING_STATE)
+            endlessRecyclerOnScrollListener.apply {
+                previousTotal = scrollPreviousTotal
+                loading = scrollLoadingState
+            }
+        }
+
         recycler_news.layoutManager = LinearLayoutManager(activity)
         recycler_news.adapter = adapter
+        recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
+
 
         viewModel.observableTopHeadlines
                 .subscribe(
@@ -65,15 +90,12 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
                         { throwable -> throwable.printStackTrace() }
                 )
                 .addTo(compositeDisposable)
+    }
 
-        recycler_news.addOnScrollListener(object : EndlessRecyclerOnScrollListener() {
-            override fun onLoadMore() {
-                Log.d(RESPONSE_DEBUG_TAG, "onLoadMore()")
-                viewModel.sendEvent()
-            }
-
-        })
-
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(SCROLL_PREV_TOTAL, endlessRecyclerOnScrollListener.previousTotal)
+        outState.putBoolean(SCROLL_LOADING_STATE, endlessRecyclerOnScrollListener.loading)
     }
 
     override fun onDestroyView() {

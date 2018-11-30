@@ -23,18 +23,6 @@ android {
         }
     }
 
-    flavorDimensions "app_colors"
-    productFlavors {
-
-        green {
-
-        }
-
-        red {
-
-        }
-    }
-
     androidExtensions {
         experimental = true
     }

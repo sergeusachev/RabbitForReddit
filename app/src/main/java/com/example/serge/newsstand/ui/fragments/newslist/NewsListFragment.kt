@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
+import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import dagger.android.support.AndroidSupportInjection
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -59,11 +60,19 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         viewModel.observableTopHeadlines
                 .subscribe(
                         { newsResponse ->
-                            Log.d(RESPONSE_DEBUG_TAG, "Response: ${newsResponse.articles.size} items")
+                            Log.d(RESPONSE_DEBUG_TAG, "From viewmodel: ${newsResponse.articles.size} items")
                             adapter.addAndUpdateItems(newsResponse.articles) },
                         { throwable -> throwable.printStackTrace() }
                 )
                 .addTo(compositeDisposable)
+
+        recycler_news.addOnScrollListener(object : EndlessRecyclerOnScrollListener() {
+            override fun onLoadMore() {
+                Log.d(RESPONSE_DEBUG_TAG, "onLoadMore()")
+                viewModel.sendEvent()
+            }
+
+        })
 
     }
 

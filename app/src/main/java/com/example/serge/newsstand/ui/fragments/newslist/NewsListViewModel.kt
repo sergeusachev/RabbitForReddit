@@ -28,6 +28,7 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
                 //.doOnNext { Log.d(RESPONSE_DEBUG_TAG, "Subject.onNext thread is ${Thread.currentThread().name}") }
                 .startWith(Unit)
                 .doOnNext { Log.d(RESPONSE_DEBUG_TAG, "Update list event!") }
+                .doOnNext { requestConfig.page++ }
                 .switchMap {
                     repository.getTopHeadlinesNews(
                             requestConfig.country,
@@ -68,6 +69,6 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
             val sources: String? = null,
             val query: String? = null,
             val pageSize: Int? = null,
-            val page: Int? = null
+            var page: Int = 0
     )
 }

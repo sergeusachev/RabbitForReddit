@@ -22,6 +22,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "app_colors"
+    productFlavors {
+
+        green {
+
+        }
+
+        red {
+
+        }
+    }
+
     androidExtensions {
         experimental = true
     }

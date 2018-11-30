@@ -13,7 +13,7 @@ class NewsRepository @Inject constructor(private val newsApi: NewsApi): INewsRep
     override fun getTopHeadlinesNews(country: String?, category: String?, sources: String?,
                                      query: String?, pageSize: Int?, page: Int?): Observable<NewsResponse> {
         return newsApi.newsTopHeadlinesObservable(country, category, sources, query, pageSize, page)
-                .doOnNext { Log.d(RESPONSE_DEBUG_TAG, "API call, thread: ${Thread.currentThread().name}") }
+                .doOnNext { Log.d(RESPONSE_DEBUG_TAG, "REQUEST Total results: ${it.totalResults}") }
                 .subscribeOn(Schedulers.io())
     }
 

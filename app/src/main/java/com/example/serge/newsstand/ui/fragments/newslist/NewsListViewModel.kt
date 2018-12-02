@@ -18,11 +18,16 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
 
     val observableTopHeadlines: ConnectableObservable<NewsResponse>
 
+    val cachedObservable: Observable<Int>
+
     private val updateEventSubject = PublishSubject.create<Unit>()
     private val requestConfig = RequestConfig()
 
     init {
         Log.d(RESPONSE_DEBUG_TAG, "ViewModel Init block")
+
+        cachedObservable = Observable.range(0, 10)
+                .cache()
 
         observableTopHeadlines = updateEventSubject
                 //.doOnNext { Log.d(RESPONSE_DEBUG_TAG, "Subject.onNext thread is ${Thread.currentThread().name}") }
@@ -61,8 +66,12 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
         TECHNOLOGY("technology");
     }
 
+    enum class CountryEnum(val countryCode: String) {
+        RU("ru");
+    }
+
     data class RequestConfig(
-            val country: String? = "ru",
+            val country: String? = CountryEnum.RU.countryCode,
             val category: String? = CategoriesEnum.GENERAL.categoryName,
             val sources: String? = null,
             val query: String? = null,

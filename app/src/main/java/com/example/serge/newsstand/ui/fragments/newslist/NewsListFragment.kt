@@ -61,6 +61,17 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
         val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
 
+        val disposable1 = viewModel.cachedObservable
+                .subscribe { digit -> Log.d("CACHE_OBSERVABLE", "1 Emit: $digit") }
+
+        disposable1.dispose()
+
+        viewModel.cachedObservable
+                .subscribe { digit -> Log.d("CACHE_OBSERVABLE", "2 Emit: $digit") }
+                .addTo(compositeDisposable)
+
+
+
         endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
             override fun onLoadMore() {
                 viewModel.sendEvent()

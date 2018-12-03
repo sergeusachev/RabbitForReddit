@@ -21,6 +21,7 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_news_list.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private val DEBUG_TAG = NewsListFragment::class.java.simpleName
@@ -61,16 +62,21 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
         val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
 
-        val disposable1 = viewModel.cachedObservable
-                .subscribe { digit -> Log.d("CACHE_OBSERVABLE", "1 Emit: $digit") }
+        val disposable1 = viewModel.myObs
+                .subscribe(
+                        { Log.d("CHECK_OBS", "1 Emit: $it") },
+                        { Log.d("CHECK_OBS", "1 onError: $it")},
+                        { Log.d("CHECK_OBS", "1 onComplete()") })
 
-        disposable1.dispose()
+        /*val disposable2 = viewModel.myObs
+                .subscribe(
+                        { Log.d("CHECK_OBS", "2 Emit: $it") },
+                        { Log.d("CHECK_OBS", "2 onError: $it")},
+                        { Log.d("CHECK_OBS", "2 onComplete()") })*/
 
-        viewModel.cachedObservable
-                .subscribe { digit -> Log.d("CACHE_OBSERVABLE", "2 Emit: $digit") }
-                .addTo(compositeDisposable)
 
-
+        //disposable1.dispose()
+        //disposable2.dispose()
 
         endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
             override fun onLoadMore() {
@@ -101,6 +107,10 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
                         { throwable -> throwable.printStackTrace() }
                 )
                 .addTo(compositeDisposable)
+    }
+
+    fun sleep(timeout: Long, timeUnit: TimeUnit) {
+        timeUnit.sleep(timeout)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

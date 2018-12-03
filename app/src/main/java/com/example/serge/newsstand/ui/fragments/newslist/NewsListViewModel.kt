@@ -10,6 +10,8 @@ import io.reactivex.observables.ConnectableObservable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
+import java.math.BigInteger
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private val DEBUG_TAG = NewsListViewModel::class.java.simpleName
@@ -18,7 +20,7 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
 
     val observableTopHeadlines: ConnectableObservable<NewsResponse>
 
-    val cachedObservable: Observable<Int>
+    val myObs: Observable<Long>
 
     private val updateEventSubject = PublishSubject.create<Unit>()
     private val requestConfig = RequestConfig()
@@ -26,8 +28,7 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
     init {
         Log.d(RESPONSE_DEBUG_TAG, "ViewModel Init block")
 
-        cachedObservable = Observable.range(0, 10)
-                .cache()
+       myObs = Observable.timer(5, TimeUnit.SECONDS)
 
         observableTopHeadlines = updateEventSubject
                 //.doOnNext { Log.d(RESPONSE_DEBUG_TAG, "Subject.onNext thread is ${Thread.currentThread().name}") }

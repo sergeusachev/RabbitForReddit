@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.model.NewsItem
 import kotlinx.android.extensions.LayoutContainer
+import kotlinx.android.synthetic.main.card_news_item.*
 import kotlinx.android.synthetic.main.news_item.*
 import kotlinx.android.synthetic.main.select_dialog_item_material.*
 
@@ -18,7 +19,7 @@ class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.
     override fun onCreateViewHolder(parent: ViewGroup, position: Int): NewsListViewHolder {
         return NewsListViewHolder(
                 LayoutInflater.from(parent.context).inflate(
-                        R.layout.news_item,
+                        R.layout.card_news_item,
                         parent,
                         false))
     }
@@ -39,8 +40,7 @@ class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.
             RecyclerView.ViewHolder(containerView), LayoutContainer {
 
         fun bind(newsItem: NewsItem) {
-            tv_title.text = newsItem.title
-            tv_description.text = newsItem.description
+            tv_news_title.text = newsItem.title
         }
     }
 

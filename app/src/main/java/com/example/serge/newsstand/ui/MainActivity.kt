@@ -1,22 +1,18 @@
 package com.example.serge.newsstand.ui
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
-import com.example.serge.newsstand.api.NewsApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
-import com.example.serge.newsstand.utils.RxNetworkChecker
 import dagger.android.AndroidInjection
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.support.HasSupportFragmentInjector
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
-import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
+
 
 class MainActivity : AppCompatActivity(), HasSupportFragmentInjector {
 
@@ -30,6 +26,11 @@ class MainActivity : AppCompatActivity(), HasSupportFragmentInjector {
         AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        root_container.setOnApplyWindowInsetsListener { v, insets ->
+            Log.d("INSET_TEST", "Inset top: ${insets.systemWindowInsetTop}")
+            insets
+        }
 
         if (savedInstanceState == null) {
             navigator.openNewsListFragment()

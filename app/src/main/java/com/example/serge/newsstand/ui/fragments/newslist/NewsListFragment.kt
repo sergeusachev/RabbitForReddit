@@ -62,22 +62,6 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
         val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
 
-        val disposable1 = viewModel.myObs
-                .subscribe(
-                        { Log.d("CHECK_OBS", "1 Emit: $it") },
-                        { Log.d("CHECK_OBS", "1 onError: $it")},
-                        { Log.d("CHECK_OBS", "1 onComplete()") })
-
-        /*val disposable2 = viewModel.myObs
-                .subscribe(
-                        { Log.d("CHECK_OBS", "2 Emit: $it") },
-                        { Log.d("CHECK_OBS", "2 onError: $it")},
-                        { Log.d("CHECK_OBS", "2 onComplete()") })*/
-
-
-        //disposable1.dispose()
-        //disposable2.dispose()
-
         endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
             override fun onLoadMore() {
                 viewModel.sendEvent()

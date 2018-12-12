@@ -41,4 +41,10 @@ class AppModule {
     @AppScope
     @Provides
     fun provideRepository(newsApi: NewsApi): NewsRepository = NewsRepository(newsApi)
+
+    /*@AppScope
+    @Provides
+    fun provideGlide() {
+
+    }*/
 }

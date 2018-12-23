@@ -14,6 +14,7 @@ import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
@@ -147,6 +148,12 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         recycler_news.layoutManager = LinearLayoutManager(activity)
         recycler_news.adapter = adapter
         recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
+
+        recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                app_bar_fragment_list.isSelected = recyclerView.canScrollVertically(-1)
+            }
+        })
 
 
         viewModel.observableTopHeadlines

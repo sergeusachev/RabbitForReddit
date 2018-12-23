@@ -20,15 +20,11 @@ class NewsListViewModel(private val repository: NewsRepository): ViewModel() {
 
     val observableTopHeadlines: ConnectableObservable<NewsResponse>
 
-    val myObs: Observable<Long>
-
     private val updateEventSubject = PublishSubject.create<Unit>()
     private val requestConfig = RequestConfig()
 
     init {
         Log.d(RESPONSE_DEBUG_TAG, "ViewModel Init block")
-
-       myObs = Observable.timer(5, TimeUnit.SECONDS)
 
         observableTopHeadlines = updateEventSubject
                 //.doOnNext { Log.d(RESPONSE_DEBUG_TAG, "Subject.onNext thread is ${Thread.currentThread().name}") }

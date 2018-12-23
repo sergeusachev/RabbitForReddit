@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.model.NewsItem
 import kotlinx.android.extensions.LayoutContainer
@@ -41,6 +42,12 @@ class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.
 
         fun bind(newsItem: NewsItem) {
             tv_news_title.text = newsItem.title
+            tv_news_source_name.text = newsItem.source.name
+            tv_news_publish_date.text = newsItem.publishedAt
+
+            Glide.with(containerView.context)
+                    .load(newsItem.urlToImage)
+                    .into(iv_news_image)
         }
     }
 

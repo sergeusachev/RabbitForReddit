@@ -1,6 +1,7 @@
 package com.example.serge.newsstand.ui
 
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -27,10 +28,9 @@ class MainActivity : AppCompatActivity(), HasSupportFragmentInjector {
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 
-
+        val uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        window.decorView.systemUiVisibility = uiFlags
         setContentView(R.layout.activity_main)
 
         root_container.setOnApplyWindowInsetsListener { v, insets ->

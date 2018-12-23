@@ -1,10 +1,10 @@
 package com.example.serge.newsstand.ui.fragments.newslist
 
 import android.animation.Animator
-import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -61,6 +61,13 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         Log.d("INSET_CHECK", "onViewCreated()")
         super.onViewCreated(view, savedInstanceState)
 
+        activity!!.window.statusBarColor = Color.argb(40, 17, 17, 17)
+
+        //TODO : need save status bar style state over device config changes
+        if (savedInstanceState == null) {
+            setStatusBarStyle(true)
+        }
+
         list_fragment_root.setOnApplyWindowInsetsListener { v, insets ->
             (toolbar_list_fragment.layoutParams as LinearLayout.LayoutParams).topMargin = insets.systemWindowInsetTop
             insets
@@ -68,10 +75,10 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
         var isStatusBarLight = true
 
-        val colorAnimatorDarker = ValueAnimator.ofInt(0, 100).apply {
+        val colorAnimatorDarker = ValueAnimator.ofInt(40, 150).apply {
             duration = 300
             addUpdateListener {
-                activity!!.window.statusBarColor = Color.argb(animatedValue as Int, 0,0,0)
+                activity!!.window.statusBarColor = Color.argb(animatedValue as Int, 17,17,17)
             }
             addListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) {}
@@ -85,10 +92,10 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
             })
         }
 
-        val colorAnimatorLighter = ValueAnimator.ofInt(100, 0).apply {
+        val colorAnimatorLighter = ValueAnimator.ofInt(150, 40).apply {
             duration = 300
             addUpdateListener {
-                activity!!.window.statusBarColor = Color.argb(animatedValue as Int, 0,0,0)
+                activity!!.window.statusBarColor = Color.argb(animatedValue as Int, 17,17,17)
             }
             addListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) {}
@@ -106,11 +113,17 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
             if (abs(verticalOffset) >= appBarLayout.height) {
                 //TODO: status bar darker
                 if (colorAnimatorLighter.isRunning) colorAnimatorLighter.cancel()
-                if (isStatusBarLight) colorAnimatorDarker.start()
+
+                if (isStatusBarLight) {
+                    setStatusBarStyle(false)
+                    colorAnimatorDarker.start() }
             } else {
                 //TODO: status bar lighter
                 if (colorAnimatorDarker.isRunning) colorAnimatorDarker.cancel()
-                if (!isStatusBarLight) colorAnimatorLighter.start()
+
+                if (!isStatusBarLight) {
+                    setStatusBarStyle(true)
+                    colorAnimatorLighter.start() }
             }
         })
 
@@ -165,5 +178,18 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
     override fun onListItemClick() {
         navigator.openNewsDetailFragment(true)
+    }
+
+    private fun setStatusBarStyle(isDarker: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            var uiFlags = activity!!.window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            uiFlags = if (isDarker) {
+                uiFlags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            } else {
+                uiFlags xor View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+            activity!!.window.decorView.systemUiVisibility = uiFlags
+        }
+
     }
 }

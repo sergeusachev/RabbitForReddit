@@ -34,6 +34,8 @@ class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.
     fun addAndUpdateItems(itemsToInsert: List<NewsItem>) {
         items.addAll(itemsToInsert)
         Log.d(RESPONSE_DEBUG_TAG, "${items.size} items in Adapter now")
+
+        //TODO Check!
         notifyDataSetChanged()
     }
 
@@ -47,7 +49,8 @@ class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.
 
             Glide.with(containerView.context)
                     .load(newsItem.urlToImage)
-                    .into(iv_news_image)
+                    .into(iv_news_photo)
+
         }
     }
 

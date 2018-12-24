@@ -62,72 +62,6 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         Log.d("INSET_CHECK", "onViewCreated()")
         super.onViewCreated(view, savedInstanceState)
 
-        activity!!.window.statusBarColor = Color.argb(40, 17, 17, 17)
-
-        //TODO : need save status bar style state over device config changes
-        if (savedInstanceState == null) {
-            setStatusBarStyle(true)
-        }
-
-        list_fragment_root.setOnApplyWindowInsetsListener { v, insets ->
-            (toolbar_list_fragment.layoutParams as LinearLayout.LayoutParams).topMargin = insets.systemWindowInsetTop
-            insets
-        }
-
-        var isStatusBarLight = true
-
-        val colorAnimatorDarker = ValueAnimator.ofInt(40, 150).apply {
-            duration = 300
-            addUpdateListener {
-                activity!!.window.statusBarColor = Color.argb(animatedValue as Int, 17,17,17)
-            }
-            addListener(object : Animator.AnimatorListener {
-                override fun onAnimationRepeat(animation: Animator?) {}
-
-                override fun onAnimationCancel(animation: Animator?) {}
-
-                override fun onAnimationStart(animation: Animator?) {}
-
-                override fun onAnimationEnd(animation: Animator?) { isStatusBarLight = false }
-
-            })
-        }
-
-        val colorAnimatorLighter = ValueAnimator.ofInt(150, 40).apply {
-            duration = 300
-            addUpdateListener {
-                activity!!.window.statusBarColor = Color.argb(animatedValue as Int, 17,17,17)
-            }
-            addListener(object : Animator.AnimatorListener {
-                override fun onAnimationRepeat(animation: Animator?) {}
-
-                override fun onAnimationCancel(animation: Animator?) {}
-
-                override fun onAnimationStart(animation: Animator?) {}
-
-                override fun onAnimationEnd(animation: Animator?) { isStatusBarLight = true }
-
-            })
-        }
-
-        app_bar_fragment_list.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
-            if (abs(verticalOffset) >= appBarLayout.height) {
-                //TODO: status bar darker
-                if (colorAnimatorLighter.isRunning) colorAnimatorLighter.cancel()
-
-                if (isStatusBarLight) {
-                    setStatusBarStyle(false)
-                    colorAnimatorDarker.start() }
-            } else {
-                //TODO: status bar lighter
-                if (colorAnimatorDarker.isRunning) colorAnimatorDarker.cancel()
-
-                if (!isStatusBarLight) {
-                    setStatusBarStyle(true)
-                    colorAnimatorLighter.start() }
-            }
-        })
-
         val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
 
         endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
@@ -154,7 +88,6 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
                 app_bar_fragment_list.isSelected = recyclerView.canScrollVertically(-1)
             }
         })
-
 
         viewModel.observableTopHeadlines
                 .subscribe(
@@ -185,18 +118,5 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
     override fun onListItemClick() {
         navigator.openNewsDetailFragment(true)
-    }
-
-    private fun setStatusBarStyle(isDarker: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            var uiFlags = activity!!.window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            uiFlags = if (isDarker) {
-                uiFlags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            } else {
-                uiFlags xor View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            }
-            activity!!.window.decorView.systemUiVisibility = uiFlags
-        }
-
     }
 }

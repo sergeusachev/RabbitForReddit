@@ -6,6 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.example.serge.newsstand.GlideApp
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.model.NewsItem
 import kotlinx.android.extensions.LayoutContainer
@@ -47,8 +50,9 @@ class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.
             tv_news_source_name.text = newsItem.source.name
             tv_news_publish_date.text = newsItem.publishedAt
 
-            Glide.with(containerView.context)
+            GlideApp.with(containerView.context)
                     .load(newsItem.urlToImage)
+                    .transforms(CenterCrop(), RoundedCorners(20))
                     .into(iv_news_photo)
 
         }

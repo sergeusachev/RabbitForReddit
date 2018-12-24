@@ -26,9 +26,6 @@ import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
 import kotlin.math.abs
 
-private val DEBUG_TAG = NewsListFragment::class.java.simpleName
-val RESPONSE_DEBUG_TAG = "Response_debug_tag"
-
 class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListener {
 
     companion object {
@@ -50,16 +47,13 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
         super.onAttach(context)
-        Log.d("INSET_CHECK", "onAttach()")
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        Log.d("INSET_CHECK", "onCreateView()")
         return inflater.inflate(R.layout.fragment_news_list, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d("INSET_CHECK", "onViewCreated()")
         super.onViewCreated(view, savedInstanceState)
 
         activity!!.window.statusBarColor = Color.argb(40, 17, 17, 17)
@@ -159,7 +153,6 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         viewModel.observableTopHeadlines
                 .subscribe(
                         { newsResponse ->
-                            Log.d(RESPONSE_DEBUG_TAG, "From viewmodel: ${newsResponse.articles.size} items")
                             adapter.addAndUpdateItems(newsResponse.articles) },
                         { throwable -> throwable.printStackTrace() }
                 )
@@ -173,14 +166,8 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     }
 
     override fun onDestroyView() {
-        Log.d("INSET_CHECK", "onDestroyView()")
         super.onDestroyView()
         compositeDisposable.clear()
-    }
-
-    override fun onDestroy() {
-        Log.d("INSET_CHECK", "onDestroy()")
-        super.onDestroy()
     }
 
     override fun onListItemClick() {

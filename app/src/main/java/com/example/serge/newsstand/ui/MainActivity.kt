@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity(), HasSupportFragmentInjector {
         setContentView(R.layout.activity_main)
 
         root_container.setOnApplyWindowInsetsListener { v, insets ->
-            Log.d("INSET_TEST", "Inset top: ${insets.systemWindowInsetTop}")
             insets
         }
 

@@ -44,7 +44,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         app:fabSize="normal"
-        android:src="@drawable/ic_filter_list_black_24dp"
+        app:srcCompat="@drawable/ic_filter_list_black_24dp"
+        app:tint="@android:color/white"
         android:layout_margin="16dp"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

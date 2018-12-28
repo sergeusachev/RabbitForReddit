@@ -10,6 +10,7 @@
 
         <item name="colorSecondary">@color/colorAccent</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/colorAccentDark</item>
     </style>
 
 </resources>

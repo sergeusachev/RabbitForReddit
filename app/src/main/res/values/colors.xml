@@ -4,6 +4,8 @@
     <color name="colorPrimaryDark">#FFFFFF</color>
     <color name="colorAccent">#3d5afe</color>
 
+    <color name="colorAccentDark">#3d1afe</color>
+
     //Color by default for FAB background tint
     <!--<color name="colorSecondary">#3d5afe</color>-->
 </resources>

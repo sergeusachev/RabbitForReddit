@@ -1,9 +1,9 @@
 package com.example.serge.newsstand.api
 
 import com.example.serge.newsstand.AppConfig
-import com.example.serge.newsstand.response.NewsSourceResponse
 import com.example.serge.newsstand.response.NewsResponse
-import io.reactivex.Observable
+import com.example.serge.newsstand.response.NewsSourceResponse
+import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Query
@@ -12,7 +12,7 @@ interface NewsApi {
 
     @Headers("X-Api-Key: ${AppConfig.API_KEY}")
     @GET("sources")
-    fun newsSourcesObservable(): Observable<NewsSourceResponse>
+    fun newsSourcesObservable(): Single<NewsSourceResponse>
 
     @Headers("X-Api-Key: ${AppConfig.API_KEY}")
     @GET("everything")
@@ -26,7 +26,7 @@ interface NewsApi {
             @Query("language") language: String?,
             @Query("sortBy") sortBy: String?,
             @Query("pageSize") pageSize: Int?,
-            @Query("page") page: Int?): Observable<NewsResponse>
+            @Query("page") page: Int?): Single<NewsResponse>
 
     @Headers("X-Api-Key: ${AppConfig.API_KEY}")
     @GET("top-headlines")
@@ -36,5 +36,5 @@ interface NewsApi {
             @Query("sources") sources: String?,
             @Query("q") query: String?,
             @Query("pageSize") pageSize: Int?,
-            @Query("page") page: Int?): Observable<NewsResponse>
+            @Query("page") page: Int?): Single<NewsResponse>
 }

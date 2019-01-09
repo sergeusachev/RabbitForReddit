@@ -1,16 +1,11 @@
 package com.example.serge.newsstand.ui.fragments.newslist
 
-import android.animation.Animator
-import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,13 +13,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
-import com.google.android.material.appbar.AppBarLayout
 import dagger.android.support.AndroidSupportInjection
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
 import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
-import kotlin.math.abs
 
 private val DEBUG_TAG = NewsListFragment::class.java.simpleName
 val RESPONSE_DEBUG_TAG = "Response_debug_tag"

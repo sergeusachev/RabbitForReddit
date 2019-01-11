@@ -36,9 +36,9 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     lateinit var viewModelFactory: NewsListViewModelFactory
 
     private val compositeDisposable = CompositeDisposable()
-    private val adapter = NewsListAdapter(this)
+    private lateinit var adapter: NewsListAdapter
 
-    private lateinit var endlessRecyclerOnScrollListener: EndlessRecyclerOnScrollListener
+//    private lateinit var endlessRecyclerOnScrollListener: EndlessRecyclerOnScrollListener
 
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
@@ -56,47 +56,38 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         super.onViewCreated(view, savedInstanceState)
 
         val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
-
-        endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
+        adapter = NewsListAdapter(this) { viewModel.sendEvent() }
+        /*endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
             override fun onLoadMore() {
                 viewModel.sendEvent()
             }
-        }
+        }*/
 
-        if (savedInstanceState != null) {
+        /*if (savedInstanceState != null) {
             val scrollPreviousTotal = savedInstanceState.getInt(SCROLL_PREV_TOTAL)
             val scrollLoadingState = savedInstanceState.getBoolean(SCROLL_LOADING_STATE)
             endlessRecyclerOnScrollListener.apply {
                 previousTotal = scrollPreviousTotal
                 loading = scrollLoadingState
             }
-        }
+        }*/
 
         recycler_news.layoutManager = LinearLayoutManager(activity)
         recycler_news.adapter = adapter
-        recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
+//        recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
 
         recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 app_bar_fragment_list.isSelected = recyclerView.canScrollVertically(-1)
             }
         })
-
-        viewModel.observableTopHeadlines
-                .subscribe(
-                        { newsResponse ->
-                            Log.d(RESPONSE_DEBUG_TAG, "From viewmodel: ${newsResponse.articles.size} items")
-                            adapter.addAndUpdateItems(newsResponse.articles) },
-                        { throwable -> throwable.printStackTrace() }
-                )
-                .addTo(compositeDisposable)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
+    /*override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(SCROLL_PREV_TOTAL, endlessRecyclerOnScrollListener.previousTotal)
         outState.putBoolean(SCROLL_LOADING_STATE, endlessRecyclerOnScrollListener.loading)
-    }
+    }*/
 
     override fun onDestroyView() {
         Log.d("INSET_CHECK", "onDestroyView()")
@@ -112,4 +103,6 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     override fun onListItemClick() {
         navigator.openNewsDetailFragment(true)
     }
+
+
 }

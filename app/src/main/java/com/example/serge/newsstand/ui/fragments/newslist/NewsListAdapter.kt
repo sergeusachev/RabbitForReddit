@@ -16,7 +16,9 @@ import kotlinx.android.synthetic.main.card_news_item.*
 import kotlinx.android.synthetic.main.news_item.*
 import kotlinx.android.synthetic.main.select_dialog_item_material.*
 
-class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
+class NewsListAdapter(
+        val listener: NewsAdapterItemClickListener,
+        private val nextPageListener: () -> Unit): RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
 
     private val items = ArrayList<NewsItem>()
 
@@ -32,6 +34,7 @@ class NewsListAdapter(val listener: NewsAdapterItemClickListener): RecyclerView.
 
     override fun onBindViewHolder(holder: NewsListViewHolder, position: Int) {
         holder.bind(items[position])
+        if (position == items.size - 5) nextPageListener()
     }
 
     fun addAndUpdateItems(itemsToInsert: List<NewsItem>) {

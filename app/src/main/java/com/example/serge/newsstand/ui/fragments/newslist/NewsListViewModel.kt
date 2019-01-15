@@ -1,14 +1,11 @@
 package com.example.serge.newsstand.ui.fragments.newslist
 
 import androidx.lifecycle.ViewModel
-import com.example.serge.newsstand.model.NewsItem
-import com.example.serge.newsstand.pagination.*
+import com.example.serge.newsstand.pagination.Event
+import com.example.serge.newsstand.pagination.RxPaginator
 import com.example.serge.newsstand.repository.NewsRepository
-import io.reactivex.*
 import io.reactivex.observables.ConnectableObservable
 import io.reactivex.subjects.PublishSubject
-
-private val DEBUG_TAG = NewsListViewModel::class.java.simpleName
 
 class NewsListViewModel(repository: NewsRepository): ViewModel() {
 

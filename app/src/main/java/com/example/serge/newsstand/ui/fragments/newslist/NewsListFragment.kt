@@ -21,7 +21,7 @@ import io.reactivex.rxkotlin.addTo
 import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
 
-private val DEBUG_TAG = NewsListFragment::class.java.simpleName
+val DEBUG_TAG = NewsListFragment::class.java.simpleName
 val RESPONSE_DEBUG_TAG = "Response_debug_tag"
 
 class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListener {

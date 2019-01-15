@@ -1,7 +1,10 @@
 package com.example.serge.newsstand.pagination
 
+import android.util.Log
 import com.example.serge.newsstand.model.NewsItem
 import com.example.serge.newsstand.repository.NewsRepository
+import com.example.serge.newsstand.ui.fragments.newslist.DEBUG_TAG
+import com.example.serge.newsstand.ui.fragments.newslist.NewsListFragment
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.ObservableTransformer
@@ -33,7 +36,9 @@ class RxPaginator(private val repository: NewsRepository) {
             val pagingState = BehaviorSubject.createDefault(PagingState())
             val allEvents = PublishSubject.create<Event>()
             allEvents.withLatestFrom(pagingState, BiFunction<Event, PagingState, List<Event>> { event, oldPagingState ->
+                Log.d(DEBUG_TAG, "OLD S: ${oldPagingState.paginatorState}")
                 val newPagingState = reduce(oldPagingState, event)
+                Log.d(DEBUG_TAG, "NEW S: ${newPagingState}")
                 val ev = if (event is Event.LoadMoreEvent) Event.LoadNewPageEvent(newPagingState.currentPage) else event
                 val sideEvents = oldPagingState.transitionEvents.toMutableList()
                 sideEvents.add(ev)
@@ -61,7 +66,7 @@ class RxPaginator(private val repository: NewsRepository) {
                         paginatorState = nextState,
                         currentPage = oldState.currentPage + 1,
                         currentData = oldState.currentData + event.data,
-                        transitionEvents = nextState.getTransitionEvents(event)
+                        transitionEvents = oldState.paginatorState.getTransitionEvents(event)
                 )
             }
             is Event.RefreshEvent -> {
@@ -69,14 +74,14 @@ class RxPaginator(private val repository: NewsRepository) {
                 oldState.copy(
                         paginatorState = nextState,
                         currentPage = 0,
-                        transitionEvents = nextState.getTransitionEvents(event)
+                        transitionEvents = oldState.paginatorState.getTransitionEvents(event)
                 )
             }
             else -> {
                 val nextState = oldState.paginatorState.nextState(event)
                 oldState.copy(
                         paginatorState = nextState,
-                        transitionEvents = nextState.getTransitionEvents(event)
+                        transitionEvents = oldState.paginatorState.getTransitionEvents(event)
                 )
             }
         }

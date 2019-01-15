@@ -8,7 +8,7 @@ interface PaginatorState {
 class EMPTY : PaginatorState {
 
     override fun nextState(event: Event): PaginatorState{
-        return if (event is Event.LoadNewPageEvent) {
+        return if (event is Event.LoadMoreEvent) {
             EMPTY_PROGRESS()
             //Show full progress
         } else throw RuntimeException()

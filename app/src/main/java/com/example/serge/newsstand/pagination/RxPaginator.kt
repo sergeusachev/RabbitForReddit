@@ -34,8 +34,9 @@ class RxPaginator(private val repository: NewsRepository) {
             val allEvents = PublishSubject.create<Event>()
             allEvents.withLatestFrom(pagingState, BiFunction<Event, PagingState, List<Event>> { event, oldPagingState ->
                 val newPagingState = reduce(oldPagingState, event)
+                val ev = if (event is Event.LoadMoreEvent) Event.LoadNewPageEvent(newPagingState.currentPage) else event
                 val sideEvents = oldPagingState.transitionEvents.toMutableList()
-                sideEvents.add(event)
+                sideEvents.add(ev)
                 pagingState.onNext(newPagingState)
                 sideEvents
             })
@@ -92,8 +93,10 @@ data class PagingState(
 
 sealed class Event {
     //object LoadFirstPageEvent : Event()
-    data class LoadNewPageEvent(val pageNumberToLoad: Int) : Event()
+    object LoadMoreEvent : Event()
     object RefreshEvent : Event()
+
+    data class LoadNewPageEvent(val pageNumberToLoad: Int) : Event()
 
     data class ShowFullProgressEvent(val show: Boolean): Event()
     data class ShowPageProgressEvent(val show: Boolean): Event()

@@ -5,6 +5,7 @@ import com.example.serge.newsstand.model.NewsItem
 import com.example.serge.newsstand.pagination.*
 import com.example.serge.newsstand.repository.NewsRepository
 import io.reactivex.*
+import io.reactivex.observables.ConnectableObservable
 import io.reactivex.subjects.PublishSubject
 
 private val DEBUG_TAG = NewsListViewModel::class.java.simpleName
@@ -13,10 +14,15 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
 
     private val externalEventsSubject = PublishSubject.create<Event>()
     private val paginator: RxPaginator = RxPaginator(repository)
-    val eventsToView: Observable<Event>
+    val eventsToView: ConnectableObservable<Event>
 
     init {
         eventsToView = paginator.createStore(externalEventsSubject)
+        eventsToView.connect()
+    }
+
+    fun sendEvent(event: Event) {
+        externalEventsSubject.onNext(event)
     }
 
     enum class CategoriesEnum(val categoryName: String) {

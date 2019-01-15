@@ -12,8 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
+import com.example.serge.newsstand.pagination.Event
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import dagger.android.support.AndroidSupportInjection
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
 import kotlinx.android.synthetic.main.fragment_news_list.*
@@ -56,7 +58,43 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         super.onViewCreated(view, savedInstanceState)
 
         val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
-        adapter = NewsListAdapter(this) { viewModel.sendEvent() }
+        adapter = NewsListAdapter(this) {
+            Log.d(DEBUG_TAG, "LoadMoreEvent")
+            viewModel.sendEvent(Event.LoadMoreEvent)
+        }
+
+        if (savedInstanceState == null) {
+            Log.d(DEBUG_TAG, "FIRST - LoadMoreEvent")
+            viewModel.sendEvent(Event.LoadMoreEvent)
+        }
+
+        viewModel.eventsToView.ofType(Event.ShowFullProgressEvent::class.java)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    Log.d(DEBUG_TAG, "ShowFullProgressEvent")
+                }
+                .addTo(compositeDisposable)
+
+        viewModel.eventsToView.ofType(Event.ShowPageProgressEvent::class.java)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    Log.d(DEBUG_TAG, "ShowPageProgressEvent")
+                }
+                .addTo(compositeDisposable)
+
+        viewModel.eventsToView.ofType(Event.ShowDataEvent::class.java)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    Log.d(DEBUG_TAG, "ShowDataEvent")
+                }
+                .addTo(compositeDisposable)
+
+        viewModel.eventsToView.ofType(Event.ShowEmptyViewEvent::class.java)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    Log.d(DEBUG_TAG, "ShowEmptyViewEvent")
+                }
+                .addTo(compositeDisposable)
         /*endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
             override fun onLoadMore() {
                 viewModel.sendEvent()

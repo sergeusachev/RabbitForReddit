@@ -6,25 +6,31 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
-import com.example.serge.newsstand.pagination.Event
+import com.example.serge.newsstand.pagination.MviAction
+import com.example.serge.newsstand.pagination.MviView
+import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModel.UiAction
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import dagger.android.support.AndroidSupportInjection
-import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
 import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
 
+val MVI_DEBUG_TAG = "MVI_DEBUG_TAGG"
 val DEBUG_TAG = NewsListFragment::class.java.simpleName
 val RESPONSE_DEBUG_TAG = "Response_debug_tag"
 
-class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListener {
+class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListener, MviView<MviAction, NewsListViewModel.UiState> {
+
+    override val actions: Observable<MviAction>
+        get() = scrollObservable
 
     companion object {
         const val SCROLL_PREV_TOTAL = "SCROLL_PREVIOUS_TOTAL_COUNT"
@@ -37,10 +43,11 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     @Inject
     lateinit var viewModelFactory: NewsListViewModelFactory
 
-    private val compositeDisposable = CompositeDisposable()
+    private lateinit var viewModel: NewsListViewModel
     private lateinit var adapter: NewsListAdapter
 
-//    private lateinit var endlessRecyclerOnScrollListener: EndlessRecyclerOnScrollListener
+    private lateinit var endlessRecyclerOnScrollListener: EndlessRecyclerOnScrollListener
+    private lateinit var scrollObservable: Observable<MviAction>
 
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
@@ -57,80 +64,53 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         Log.d("INSET_CHECK", "onViewCreated()")
         super.onViewCreated(view, savedInstanceState)
 
-        val viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
-        adapter = NewsListAdapter(this) {
-            Log.d(DEBUG_TAG, "LoadMoreEvent")
-            viewModel.sendEvent(Event.LoadMoreEvent)
-        }
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
 
-        if (savedInstanceState == null) {
-            Log.d(DEBUG_TAG, "FIRST - LoadMoreEvent")
-            viewModel.sendEvent(Event.LoadMoreEvent)
-        }
+        adapter = NewsListAdapter()
+        recycler_news.adapter = adapter
 
-        viewModel.eventsToView.ofType(Event.ShowFullProgressEvent::class.java)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    Log.d(DEBUG_TAG, "ShowFullProgressEvent")
-                }
-                .addTo(compositeDisposable)
-
-        viewModel.eventsToView.ofType(Event.ShowPageProgressEvent::class.java)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    Log.d(DEBUG_TAG, "ShowPageProgressEvent")
-                }
-                .addTo(compositeDisposable)
-
-        viewModel.eventsToView.ofType(Event.ShowDataEvent::class.java)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    Log.d(DEBUG_TAG, "ShowDataEvent")
-                }
-                .addTo(compositeDisposable)
-
-        viewModel.eventsToView.ofType(Event.ShowEmptyViewEvent::class.java)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    Log.d(DEBUG_TAG, "ShowEmptyViewEvent")
-                }
-                .addTo(compositeDisposable)
-        /*endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
-            override fun onLoadMore() {
-                viewModel.sendEvent()
-            }
-        }*/
-
-        /*if (savedInstanceState != null) {
+        if (savedInstanceState != null) {
             val scrollPreviousTotal = savedInstanceState.getInt(SCROLL_PREV_TOTAL)
             val scrollLoadingState = savedInstanceState.getBoolean(SCROLL_LOADING_STATE)
             endlessRecyclerOnScrollListener.apply {
                 previousTotal = scrollPreviousTotal
                 loading = scrollLoadingState
             }
-        }*/
+        }
+
+        scrollObservable = Observable.create { emitter ->
+            endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
+                override fun onLoadMore() {
+                    emitter.onNext(UiAction.LoadMoreAction)
+                }
+            }
+            recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
+            emitter.setCancellable { recycler_news.removeOnScrollListener(endlessRecyclerOnScrollListener) }
+            if (recycler_news.adapter?.itemCount == 0) emitter.onNext(UiAction.LoadMoreAction)
+        }
 
         recycler_news.layoutManager = LinearLayoutManager(activity)
-        recycler_news.adapter = adapter
-//        recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
+
 
         recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 app_bar_fragment_list.isSelected = recyclerView.canScrollVertically(-1)
             }
         })
+
+        viewModel.bind(this)
     }
 
-    /*override fun onSaveInstanceState(outState: Bundle) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(SCROLL_PREV_TOTAL, endlessRecyclerOnScrollListener.previousTotal)
         outState.putBoolean(SCROLL_LOADING_STATE, endlessRecyclerOnScrollListener.loading)
-    }*/
+    }
 
     override fun onDestroyView() {
         Log.d("INSET_CHECK", "onDestroyView()")
         super.onDestroyView()
-        compositeDisposable.clear()
+        viewModel.unbind()
     }
 
     override fun onDestroy() {
@@ -140,6 +120,35 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
     override fun onListItemClick() {
         navigator.openNewsDetailFragment(true)
+    }
+
+    override fun render(state: NewsListViewModel.UiState) {
+        Log.d(MVI_DEBUG_TAG, "UiState: $state")
+
+        if (state.currentPage == 0 && state.loading) {
+                //Full progress
+            pb_full_progress.visibility = View.VISIBLE
+        } else if (state.currentPage > 0 && state.loading) {
+            //Page progress
+            Toast.makeText(activity, "Page loading", Toast.LENGTH_SHORT).show()
+        } else if (state.currentPage == 0 && state.error != null) {
+            //Full error
+            Toast.makeText(activity, "Full error", Toast.LENGTH_SHORT).show()
+        } else if (state.currentPage > 0 && state.error != null) {
+            //Page error
+            Toast.makeText(activity, "Page error", Toast.LENGTH_SHORT).show()
+        } else if (state.currentPage == 0 && !state.loading && state.data.isEmpty()) {
+            //Empty view
+            Toast.makeText(activity, "Empty view", Toast.LENGTH_SHORT).show()
+        } else if (state.currentPage > 0 && !state.loading && state.data.isEmpty()) {
+            //New page is empty
+            Toast.makeText(activity, "New page is empty", Toast.LENGTH_SHORT).show()
+        } else if (!state.loading && state.data.isNotEmpty()) {
+            //Show data
+            pb_full_progress.visibility = View.GONE
+            recycler_news.visibility = View.VISIBLE
+            adapter.addAndUpdateItems(state.data)
+        }
     }
 
 

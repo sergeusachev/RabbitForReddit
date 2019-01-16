@@ -1,7 +1,9 @@
 package com.example.serge.newsstand.repository
 
+import android.util.Log
 import com.example.serge.newsstand.api.NewsApi
 import com.example.serge.newsstand.response.NewsResponse
+import com.example.serge.newsstand.ui.fragments.newslist.MVI_DEBUG_TAG
 import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModel
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
@@ -9,6 +11,7 @@ import javax.inject.Inject
 
 class NewsRepository @Inject constructor(private val newsApi: NewsApi) : INewsRepository {
     override fun getTopHeadlinesNews(pageNumber: Int): Single<NewsResponse> {
+        Log.d(MVI_DEBUG_TAG, "getSingle for page: ${pageNumber}")
         return newsApi.newsTopHeadlinesObservable(
                 NewsListViewModel.CountryEnum.RU.countryCode,
                 NewsListViewModel.CategoriesEnum.GENERAL.categoryName,

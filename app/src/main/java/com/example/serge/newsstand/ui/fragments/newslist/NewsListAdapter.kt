@@ -17,8 +17,9 @@ import kotlinx.android.synthetic.main.news_item.*
 import kotlinx.android.synthetic.main.select_dialog_item_material.*
 
 class NewsListAdapter(
-        val listener: NewsAdapterItemClickListener,
-        private val nextPageListener: () -> Unit): RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
+        //val listener: NewsAdapterItemClickListener,
+        //private val nextPageListener: () -> Unit
+): RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
 
     private val items = ArrayList<NewsItem>()
 
@@ -34,7 +35,7 @@ class NewsListAdapter(
 
     override fun onBindViewHolder(holder: NewsListViewHolder, position: Int) {
         holder.bind(items[position])
-        if (position == items.size - 5) nextPageListener()
+        //if (position == items.size - 5) nextPageListener()
     }
 
     fun addAndUpdateItems(itemsToInsert: List<NewsItem>) {

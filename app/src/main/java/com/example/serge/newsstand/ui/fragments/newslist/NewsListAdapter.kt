@@ -11,14 +11,19 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.serge.newsstand.GlideApp
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.model.NewsItem
+import io.reactivex.Observable
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.card_news_item.*
 import kotlinx.android.synthetic.main.news_item.*
 import kotlinx.android.synthetic.main.select_dialog_item_material.*
 
+interface LoadMoreListener {
+    fun loadMore()
+}
+
 class NewsListAdapter(
         //val listener: NewsAdapterItemClickListener,
-        //private val nextPageListener: () -> Unit
+        //private val loadMoreListener: LoadMoreListener
 ): RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
 
     private val items = ArrayList<NewsItem>()
@@ -35,7 +40,7 @@ class NewsListAdapter(
 
     override fun onBindViewHolder(holder: NewsListViewHolder, position: Int) {
         holder.bind(items[position])
-        //if (position == items.size - 5) nextPageListener()
+        //if (position == items.size - 5) loadMoreListener.loadMore()
     }
 
     fun addAndUpdateItems(itemsToInsert: List<NewsItem>) {

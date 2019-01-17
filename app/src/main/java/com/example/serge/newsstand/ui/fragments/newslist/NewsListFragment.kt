@@ -21,6 +21,7 @@ import dagger.android.support.AndroidSupportInjection
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_news_list.*
+import timber.log.Timber
 import javax.inject.Inject
 
 val MVI_DEBUG_TAG = "MVI_DEBUG_TAGG"
@@ -44,7 +45,10 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     lateinit var viewModelFactory: NewsListViewModelFactory
 
     private lateinit var viewModel: NewsListViewModel
-    private lateinit var adapter: NewsListAdapter
+    private val adapter = NewsListAdapter()
+
+    /*private lateinit var loadMoreObservable: Observable<MviAction>
+    private lateinit var loadMoreListener: LoadMoreListener*/
 
     private lateinit var endlessRecyclerOnScrollListener: EndlessRecyclerOnScrollListener
     private lateinit var scrollObservable: Observable<MviAction>
@@ -52,46 +56,56 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
         super.onAttach(context)
-        Log.d("INSET_CHECK", "onAttach()")
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        Log.d("INSET_CHECK", "onCreateView()")
         return inflater.inflate(R.layout.fragment_news_list, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d("INSET_CHECK", "onViewCreated()")
         super.onViewCreated(view, savedInstanceState)
 
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
-
-        adapter = NewsListAdapter()
         recycler_news.adapter = adapter
 
-        if (savedInstanceState != null) {
-            val scrollPreviousTotal = savedInstanceState.getInt(SCROLL_PREV_TOTAL)
-            val scrollLoadingState = savedInstanceState.getBoolean(SCROLL_LOADING_STATE)
-            endlessRecyclerOnScrollListener.apply {
-                previousTotal = scrollPreviousTotal
-                loading = scrollLoadingState
-            }
-        }
+        /* scrollObservable = Observable.create { emitter ->
+             endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
+                 override fun onLoadMore() {
+                     emitter.onNext(UiAction.LoadMoreAction)
+                 }
+             }
+             recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
+             emitter.setCancellable { recycler_news.removeOnScrollListener(endlessRecyclerOnScrollListener) }
+             if (recycler_news.adapter?.itemCount == 0) emitter.onNext(UiAction.LoadMoreAction)
+         }
+
+         if (savedInstanceState != null) {
+             val scrollPreviousTotal = savedInstanceState.getInt(SCROLL_PREV_TOTAL)
+             val scrollLoadingState = savedInstanceState.getBoolean(SCROLL_LOADING_STATE)
+             endlessRecyclerOnScrollListener.apply {
+                 previousTotal = scrollPreviousTotal
+                 loading = scrollLoadingState
+             }
+         }*/
 
         scrollObservable = Observable.create { emitter ->
-            endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
-                override fun onLoadMore() {
-                    emitter.onNext(UiAction.LoadMoreAction)
+            val scrollListener = object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    val lastVisiblePosition = (recyclerView.layoutManager!! as LinearLayoutManager).findLastVisibleItemPosition()
+                    val totalCount = recyclerView.adapter!!.itemCount
+                    if (lastVisiblePosition >= totalCount - 4) emitter.onNext(UiAction.LoadMoreAction)
+                }
+
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
                 }
             }
-            recycler_news.addOnScrollListener(endlessRecyclerOnScrollListener)
-            emitter.setCancellable { recycler_news.removeOnScrollListener(endlessRecyclerOnScrollListener) }
-            if (recycler_news.adapter?.itemCount == 0) emitter.onNext(UiAction.LoadMoreAction)
+            recycler_news.addOnScrollListener(scrollListener)
+            emitter.setCancellable { recycler_news.removeOnScrollListener(scrollListener) }
+            if (savedInstanceState == null && recycler_news.adapter!!.itemCount == 0) emitter.onNext(UiAction.LoadMoreAction)
+
         }
-
         recycler_news.layoutManager = LinearLayoutManager(activity)
-
-
         recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 app_bar_fragment_list.isSelected = recyclerView.canScrollVertically(-1)
@@ -101,20 +115,18 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
         viewModel.bind(this)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
+    /*override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(SCROLL_PREV_TOTAL, endlessRecyclerOnScrollListener.previousTotal)
         outState.putBoolean(SCROLL_LOADING_STATE, endlessRecyclerOnScrollListener.loading)
-    }
+    }*/
 
     override fun onDestroyView() {
-        Log.d("INSET_CHECK", "onDestroyView()")
         super.onDestroyView()
         viewModel.unbind()
     }
 
     override fun onDestroy() {
-        Log.d("INSET_CHECK", "onDestroy()")
         super.onDestroy()
     }
 
@@ -123,10 +135,9 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     }
 
     override fun render(state: NewsListViewModel.UiState) {
-        Log.d(MVI_DEBUG_TAG, "UiState: $state")
 
         if (state.currentPage == 0 && state.loading) {
-                //Full progress
+            //Full progress
             pb_full_progress.visibility = View.VISIBLE
         } else if (state.currentPage > 0 && state.loading) {
             //Page progress

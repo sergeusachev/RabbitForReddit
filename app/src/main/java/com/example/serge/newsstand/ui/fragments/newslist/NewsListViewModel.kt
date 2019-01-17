@@ -1,7 +1,7 @@
 package com.example.serge.newsstand.ui.fragments.newslist
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.model.NewsItem
 import com.example.serge.newsstand.pagination.*
 import com.example.serge.newsstand.repository.NewsRepository
@@ -70,15 +70,10 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
         override fun bindMiddleware(action: Observable<MviAction>, state: Observable<UiState>): Observable<MviAction> {
             return action.ofType(UiAction.LoadMoreAction::class.java)
                     .withLatestFrom(state) { a, s -> a to s }
-                    .doOnNext { Log.d(MVI_DEBUG_TAG, "Middleware Action: ${it.first}, State: ${it.second.currentPage}") }
                     .observeOn(Schedulers.io())
                     .switchMapSingle {
-                        Log.d(MVI_DEBUG_TAG, "PAGE: ${it.second.currentPage}")
                         repository.getTopHeadlinesNews(it.second.currentPage)
-                                .map<InternalAction> { newsResponse ->
-                                    //Log.d(MVI_DEBUG_TAG, "PAGE: ${newsResponse.articles[0].title}")
-                                    InternalAction.LoadDataSuccessAction(newsResponse.articles)
-                                }
+                                .map<InternalAction> { newsResponse -> InternalAction.LoadDataSuccessAction(newsResponse.articles) }
                                 .onErrorReturn { throwable -> InternalAction.LoadDataFailAction(throwable) }
                     }
         }
@@ -88,9 +83,12 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
 
         override fun reduce(state: UiState, action: MviAction): UiState {
             return when (action) {
-                is UiAction.LoadMoreAction -> state.copy(loading = true)
-                is InternalAction.LoadDataSuccessAction -> state.copy(
+                is UiAction.LoadMoreAction -> state.copy(
                         currentPage = state.currentPage + 1,
+                        loading = true,
+                        data = listOf()
+                )
+                is InternalAction.LoadDataSuccessAction -> state.copy(
                         data = action.data,
                         loading = false
                 )

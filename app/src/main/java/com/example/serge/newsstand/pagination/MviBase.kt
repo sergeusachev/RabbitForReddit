@@ -1,5 +1,7 @@
 package com.example.serge.newsstand.pagination
 
+import android.util.Log
+import com.example.serge.newsstand.ui.fragments.newslist.MVI_DEBUG_TAG
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
@@ -37,11 +39,13 @@ class Store<A, S>(
     fun bindView(view: MviView<A, S>): Disposable {
         val disposable = CompositeDisposable()
 
-        state.observeOn(AndroidSchedulers.mainThread())
+        state.doOnNext { Log.d(MVI_DEBUG_TAG, "UiState: $it") }
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(view::render)
                 .addTo(disposable)
 
-        view.actions.subscribe(actions::accept)
+        view.actions.doOnNext { Log.d(MVI_DEBUG_TAG, "Action: $it") }
+                .subscribe(actions::accept)
                 .addTo(disposable)
 
         return disposable

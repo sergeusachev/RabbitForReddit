@@ -5,7 +5,6 @@ import com.example.serge.newsstand.ui.fragments.newslist.MVI_DEBUG_TAG
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.addTo
@@ -22,39 +21,24 @@ class Store<A, S>(
     fun wire(): Disposable {
         val disposable = CompositeDisposable()
 
-        actions.withLatestFrom(state) { action, state ->
-            reducer.reduce(state, action)
-        }
+        actions.doOnNext { Log.d(MVI_DEBUG_TAG, "Action(MAIN): $it") }
+                .withLatestFrom(state) { action, state ->
+                    reducer.reduce(state, action)
+                }
                 .distinctUntilChanged()
                 .subscribe(state::accept)
                 .addTo(disposable)
 
         Observable.merge<A>(middlewares.map { it.bindMiddleware(actions, state) })
+                .doOnNext { Log.d(MVI_DEBUG_TAG, "Action(MIDDLEWARE): $it") }
                 .subscribe(actions::accept)
                 .addTo(disposable)
 
         return disposable
     }
 
-    fun bindView(view: MviView<A, S>): Disposable {
-        val disposable = CompositeDisposable()
-
-        state.doOnNext { Log.d(MVI_DEBUG_TAG, "UiState: $it") }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(view::render)
-                .addTo(disposable)
-
-        view.actions.doOnNext { Log.d(MVI_DEBUG_TAG, "Action: $it") }
-                .subscribe(actions::accept)
-                .addTo(disposable)
-
-        return disposable
-    }
-}
-
-interface MviView<A, S> {
-    val actions: Observable<A>
-    fun render(state: S)
+    fun uiStateObservable(): Observable<S> = state.doOnNext { Log.d(MVI_DEBUG_TAG, "State: $it") }
+    fun pushAction(action: A) = actions.accept(action)
 }
 
 interface Reducer<S, A> {

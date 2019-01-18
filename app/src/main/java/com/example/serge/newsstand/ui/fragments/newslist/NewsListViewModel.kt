@@ -1,12 +1,13 @@
 package com.example.serge.newsstand.ui.fragments.newslist
 
 import androidx.lifecycle.ViewModel
-import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.model.NewsItem
-import com.example.serge.newsstand.pagination.*
+import com.example.serge.newsstand.pagination.Middleware
+import com.example.serge.newsstand.pagination.MviAction
+import com.example.serge.newsstand.pagination.Reducer
+import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
 import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 
@@ -19,19 +20,20 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
     )
 
     private val storeDisposable = store.wire()
-    private var viewDisposable: Disposable? = null
+
+    init {
+        loadMore()
+    }
+
+    fun loadMore() {
+        store.pushAction(UiAction.LoadMoreAction)
+    }
+
+    fun getUiStateObservable() = store.uiStateObservable()
 
     override fun onCleared() {
         super.onCleared()
         storeDisposable.dispose()
-    }
-
-    fun bind(view: MviView<MviAction, UiState>) {
-        viewDisposable = store.bindView(view)
-    }
-
-    fun unbind() {
-        viewDisposable?.dispose()
     }
 
     enum class CategoriesEnum(val categoryName: String) {

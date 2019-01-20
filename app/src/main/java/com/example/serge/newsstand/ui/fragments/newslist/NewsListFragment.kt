@@ -12,7 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
+import com.example.serge.newsstand.pagination.MviAction
+import com.example.serge.newsstand.pagination.MviView
 import dagger.android.support.AndroidSupportInjection
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
@@ -23,7 +26,9 @@ val MVI_DEBUG_TAG = "MVI_DEBUG_TAGG"
 val DEBUG_TAG = NewsListFragment::class.java.simpleName
 val RESPONSE_DEBUG_TAG = "Response_debug_tag"
 
-class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListener {
+class NewsListFragment : Fragment(),
+        NewsListAdapter.NewsAdapterItemClickListener,
+        MviView<MviAction> {
 
     @Inject
     lateinit var navigator: Navigator
@@ -31,9 +36,15 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
     @Inject
     lateinit var viewModelFactory: NewsListViewModelFactory
 
+    private lateinit var adapterObservable: Observable<Int>
     private val compositeDisposable = CompositeDisposable()
     private lateinit var viewModel: NewsListViewModel
-    private lateinit var adapter: NewsListAdapter
+    private val adapter = NewsListAdapter()
+
+    override val viewActions: Observable<MviAction>
+        get() = adapterObservable
+                .distinctUntilChanged()
+                .map { NewsListViewModel.UiAction.LoadMoreAction }
 
 
     override fun onAttach(context: Context?) {
@@ -47,16 +58,17 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
-        adapter = NewsListAdapter { viewModel.loadMore() }
-        recycler_news.adapter = adapter
-        recycler_news.layoutManager = LinearLayoutManager(activity)
-        recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                app_bar_fragment_list.isSelected = recyclerView.canScrollVertically(-1)
+        initRecycler()
+
+        adapterObservable = Observable.create<Int> { emitter ->
+            adapter.loadPageListener = object : NewsListAdapter.NewsAdapterLoadPageListener {
+                override fun onLoadNewPage(totalItemCount: Int) {
+                    emitter.onNext(totalItemCount)
+                }
             }
-        })
+            if (savedInstanceState == null) emitter.onNext(0)
+        }
 
         viewModel.getUiStateObservable()
                 .observeOn(AndroidSchedulers.mainThread())
@@ -65,14 +77,14 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
                 }
                 .addTo(compositeDisposable)
 
-        if (savedInstanceState == null) {
-
-        }
+        viewModel.bindView(this)
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.clear()
+        viewModel.unbindView()
     }
 
     override fun onDestroy() {
@@ -81,6 +93,16 @@ class NewsListFragment : Fragment(), NewsListAdapter.NewsAdapterItemClickListene
 
     override fun onListItemClick() {
         navigator.openNewsDetailFragment(true)
+    }
+
+    private fun initRecycler() {
+        recycler_news.adapter = adapter
+        recycler_news.layoutManager = LinearLayoutManager(activity)
+        recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                app_bar_fragment_list.isSelected = recyclerView.canScrollVertically(-1)
+            }
+        })
     }
 
     private fun render(state: NewsListViewModel.UiState) {

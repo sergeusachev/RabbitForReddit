@@ -1,53 +1,43 @@
 package com.example.serge.newsstand.ui.fragments.newslist
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.example.serge.newsstand.GlideApp
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.model.NewsItem
-import io.reactivex.Observable
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.card_news_item.*
-import kotlinx.android.synthetic.main.news_item.*
-import kotlinx.android.synthetic.main.select_dialog_item_material.*
 
-class NewsListAdapter(
-        //val listener: NewsAdapterItemClickListener,
-        private val nextPageListener: () -> Unit
-): RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
 
+class NewsListAdapter() : RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
+
+    var loadPageListener: NewsAdapterLoadPageListener? = null
     private val items = ArrayList<NewsItem>()
 
     override fun onCreateViewHolder(parent: ViewGroup, position: Int): NewsListViewHolder {
         return NewsListViewHolder(
-                LayoutInflater.from(parent.context).inflate(
-                        R.layout.card_news_item,
-                        parent,
-                        false))
+                LayoutInflater.from(parent.context).inflate(R.layout.card_news_item, parent, false))
     }
 
     override fun getItemCount() = items.size
 
     override fun onBindViewHolder(holder: NewsListViewHolder, position: Int) {
         holder.bind(items[position])
-        if (position == items.size - 5) nextPageListener()
+        if (position == items.size - 5) loadPageListener?.onLoadNewPage(items.size)
     }
 
     fun addAndUpdateItems(itemsToInsert: List<NewsItem>) {
+        items.clear()
         items.addAll(itemsToInsert)
-        Log.d(RESPONSE_DEBUG_TAG, "${items.size} items in Adapter now")
-
-        //TODO Check!
         notifyDataSetChanged()
     }
 
-    inner class NewsListViewHolder(override val containerView: View):
+
+    inner class NewsListViewHolder(override val containerView: View) :
             RecyclerView.ViewHolder(containerView), LayoutContainer {
 
         fun bind(newsItem: NewsItem) {
@@ -65,5 +55,9 @@ class NewsListAdapter(
 
     interface NewsAdapterItemClickListener {
         fun onListItemClick()
+    }
+
+    interface NewsAdapterLoadPageListener {
+        fun onLoadNewPage(totalItemCount: Int)
     }
 }

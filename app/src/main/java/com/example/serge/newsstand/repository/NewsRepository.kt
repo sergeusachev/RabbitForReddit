@@ -1,6 +1,8 @@
 package com.example.serge.newsstand.repository
 
 import com.example.serge.newsstand.api.NewsApi
+import com.example.serge.newsstand.request.CategoriesEnum
+import com.example.serge.newsstand.request.CountryEnum
 import com.example.serge.newsstand.response.NewsResponse
 import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModel
 import io.reactivex.Single
@@ -9,8 +11,8 @@ import javax.inject.Inject
 class NewsRepository @Inject constructor(private val newsApi: NewsApi) : INewsRepository {
     override fun getTopHeadlinesNews(pageNumber: Int): Single<NewsResponse> {
         return newsApi.newsTopHeadlinesObservable(
-                NewsListViewModel.CountryEnum.RU.countryCode,
-                NewsListViewModel.CategoriesEnum.GENERAL.categoryName,
+                CountryEnum.RU.countryCode,
+                CategoriesEnum.GENERAL.categoryName,
                 null,
                 null,
                 null,

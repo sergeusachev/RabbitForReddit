@@ -2,12 +2,10 @@ package com.example.serge.newsstand.ui.fragments.newslist
 
 import androidx.lifecycle.ViewModel
 import com.example.serge.newsstand.model.NewsItem
-import com.example.serge.newsstand.pagination.Middleware
-import com.example.serge.newsstand.pagination.MviAction
-import com.example.serge.newsstand.pagination.Reducer
-import com.example.serge.newsstand.pagination.Store
+import com.example.serge.newsstand.pagination.*
 import com.example.serge.newsstand.repository.NewsRepository
 import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 
@@ -20,13 +18,14 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
     )
 
     private val storeDisposable = store.wire()
+    private var viewDisposable: Disposable? = null
 
-    init {
-        loadMore()
+    fun bindView(view: MviView<MviAction>) {
+        viewDisposable = store.bindView(view)
     }
 
-    fun loadMore() {
-        store.pushAction(UiAction.LoadMoreAction)
+    fun unbindView() {
+        viewDisposable?.dispose()
     }
 
     fun getUiStateObservable() = store.uiStateObservable()
@@ -35,37 +34,6 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
         super.onCleared()
         storeDisposable.dispose()
     }
-
-    enum class CategoriesEnum(val categoryName: String) {
-        BUSINESS("business"),
-        ENTERTAINMENT("entertainment"),
-        GENERAL("general"),
-        HEALTH("health"),
-        SCIENCE("science"),
-        SPORTS("sports"),
-        TECHNOLOGY("technology");
-    }
-
-    enum class CountryEnum(val countryCode: String) {
-        RU("ru");
-    }
-
-    sealed class UiAction : MviAction {
-        object LoadMoreAction : UiAction()
-        object RefreshData : UiAction()
-    }
-
-    sealed class InternalAction : MviAction {
-        data class LoadDataSuccessAction(val data: List<NewsItem>) : InternalAction()
-        data class LoadDataFailAction(val throwable: Throwable) : InternalAction()
-    }
-
-    data class UiState(
-            val currentPage: Int = 0,
-            val loading: Boolean = true,
-            val error: Throwable? = null,
-            val data: List<NewsItem> = listOf()
-    )
 
     class LoadPageMiddleware(val repository: NewsRepository) : Middleware<MviAction, UiState> {
 
@@ -87,15 +55,31 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
             return when (action) {
                 is UiAction.LoadMoreAction -> state.copy(
                         currentPage = state.currentPage + 1,
-                        loading = true,
-                        data = listOf()
+                        loading = true
                 )
                 is InternalAction.LoadDataSuccessAction -> state.copy(
-                        data = action.data,
+                        data = state.data + action.data,
                         loading = false
                 )
                 else -> throw RuntimeException("Unexpected action: $action")
             }
         }
     }
+
+    sealed class UiAction : MviAction {
+        object LoadMoreAction : UiAction()
+        object RefreshData : UiAction()
+    }
+
+    sealed class InternalAction : MviAction {
+        data class LoadDataSuccessAction(val data: List<NewsItem>) : InternalAction()
+        data class LoadDataFailAction(val throwable: Throwable) : InternalAction()
+    }
+
+    data class UiState(
+            val currentPage: Int = 0,
+            val loading: Boolean = true,
+            val error: Throwable? = null,
+            val data: List<NewsItem> = listOf()
+    )
 }

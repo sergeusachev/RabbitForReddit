@@ -37,8 +37,21 @@ class Store<A, S>(
         return disposable
     }
 
+    fun bindView(view: MviView<A>): Disposable {
+        val disposable = CompositeDisposable()
+
+        view.viewActions.doOnNext { Log.d(MVI_DEBUG_TAG, "Action(UI): $it") }
+                .subscribe(actions::accept)
+                .addTo(disposable)
+
+        return disposable
+    }
+
     fun uiStateObservable(): Observable<S> = state.doOnNext { Log.d(MVI_DEBUG_TAG, "State: $it") }
-    fun pushAction(action: A) = actions.accept(action)
+}
+
+interface MviView<A> {
+    val viewActions: Observable<A>
 }
 
 interface Reducer<S, A> {

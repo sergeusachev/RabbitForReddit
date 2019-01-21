@@ -19,6 +19,7 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import io.reactivex.rxkotlin.withLatestFrom
 import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
 
@@ -36,16 +37,24 @@ class NewsListFragment : Fragment(),
     @Inject
     lateinit var viewModelFactory: NewsListViewModelFactory
 
-    private lateinit var adapterObservable: Observable<Int>
+    //private lateinit var adapterObservable: Observable<Int>
+    private lateinit var scrollObs: Observable<Int>
+
     private val compositeDisposable = CompositeDisposable()
     private lateinit var viewModel: NewsListViewModel
     private val adapter = NewsListAdapter()
 
-    override val viewActions: Observable<MviAction>
+    /*override val viewActions: Observable<MviAction>
         get() = adapterObservable
                 .distinctUntilChanged()
-                .map { NewsListViewModel.UiAction.LoadMoreAction }
+                .map { NewsListViewModel.UiAction.LoadMoreAction }*/
 
+    override val viewActions: Observable<MviAction>
+        get() = scrollObs.withLatestFrom(viewModel.getUiStateObservable())
+                .filter { pairCountState ->
+                    !pairCountState.second.loading || pairCountState.first == 0 && pairCountState.second.pageForLoad > 0
+                }
+                .map { NewsListViewModel.UiAction.LoadMoreAction }
 
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
@@ -61,14 +70,30 @@ class NewsListFragment : Fragment(),
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
         initRecycler()
 
-        adapterObservable = Observable.create<Int> { emitter ->
+
+        scrollObs = Observable.create<Int> { emitter ->
+            recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    if ((recyclerView.layoutManager as
+                                    LinearLayoutManager).findLastVisibleItemPosition() + 5 >
+                            (recyclerView.layoutManager as LinearLayoutManager).itemCount) {
+                        emitter.onNext((recyclerView.layoutManager as LinearLayoutManager).itemCount)
+                    }
+                    if ((recyclerView.layoutManager as LinearLayoutManager).itemCount == 0) {
+                        emitter.onNext(0)
+                    }
+                }
+            })
+        }
+
+        /*adapterObservable = Observable.create<Int> { emitter ->
             adapter.loadPageListener = object : NewsListAdapter.NewsAdapterLoadPageListener {
                 override fun onLoadNewPage(totalItemCount: Int) {
                     emitter.onNext(totalItemCount)
                 }
             }
             if (savedInstanceState == null) emitter.onNext(0)
-        }
+        }*/
 
         viewModel.getUiStateObservable()
                 .observeOn(AndroidSchedulers.mainThread())

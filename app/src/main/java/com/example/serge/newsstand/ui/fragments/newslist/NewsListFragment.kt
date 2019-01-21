@@ -107,22 +107,22 @@ class NewsListFragment : Fragment(),
 
     private fun render(state: NewsListViewModel.UiState) {
 
-        if (state.currentPage == 0 && state.loading) {
+        if (state.pageForLoad == 0 && state.loading) {
             //Full progress
             pb_full_progress.visibility = View.VISIBLE
-        } else if (state.currentPage > 0 && state.loading) {
+        } else if (state.pageForLoad > 0 && state.loading) {
             //Page progress
             Toast.makeText(activity, "Page loading", Toast.LENGTH_SHORT).show()
-        } else if (state.currentPage == 0 && state.error != null) {
+        } else if (state.pageForLoad == 0 && state.error != null) {
             //Full error
             Toast.makeText(activity, "Full error", Toast.LENGTH_SHORT).show()
-        } else if (state.currentPage > 0 && state.error != null) {
+        } else if (state.pageForLoad > 0 && state.error != null) {
             //Page error
             Toast.makeText(activity, "Page error", Toast.LENGTH_SHORT).show()
-        } else if (state.currentPage == 0 && !state.loading && state.data.isEmpty()) {
+        } else if (state.pageForLoad == 0 && !state.loading && state.data.isEmpty()) {
             //Empty view
             Toast.makeText(activity, "Empty view", Toast.LENGTH_SHORT).show()
-        } else if (state.currentPage > 0 && !state.loading && state.data.isEmpty()) {
+        } else if (state.pageForLoad > 0 && !state.loading && state.data.isEmpty()) {
             //New page is empty
             Toast.makeText(activity, "New page is empty", Toast.LENGTH_SHORT).show()
         } else if (!state.loading && state.data.isNotEmpty()) {

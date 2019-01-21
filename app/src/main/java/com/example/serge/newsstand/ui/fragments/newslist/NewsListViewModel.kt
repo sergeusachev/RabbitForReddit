@@ -9,7 +9,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 
-class NewsListViewModel(repository: NewsRepository): ViewModel() {
+class NewsListViewModel(repository: NewsRepository) : ViewModel() {
 
     private val store: Store<MviAction, UiState> = Store(
             LoadPageReducer(),
@@ -42,8 +42,11 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
                     .withLatestFrom(state) { a, s -> a to s }
                     .observeOn(Schedulers.io())
                     .switchMapSingle {
-                        repository.getTopHeadlinesNews(it.second.currentPage)
-                                .map<InternalAction> { newsResponse -> InternalAction.LoadDataSuccessAction(newsResponse.articles) }
+                        repository.getTopHeadlinesNews(it.second.pageForLoad)
+                                .map<InternalAction> { newsResponse ->
+                                    if (newsResponse.articles.isEmpty()) InternalAction.LoadEmptyDataAction
+                                    else InternalAction.LoadDataSuccessAction(newsResponse.articles)
+                                }
                                 .onErrorReturn { throwable -> InternalAction.LoadDataFailAction(throwable) }
                     }
         }
@@ -53,14 +56,13 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
 
         override fun reduce(state: UiState, action: MviAction): UiState {
             return when (action) {
-                is UiAction.LoadMoreAction -> state.copy(
-                        currentPage = state.currentPage + 1,
-                        loading = true
-                )
+                is UiAction.LoadMoreAction -> state.copy(loading = true)
                 is InternalAction.LoadDataSuccessAction -> state.copy(
+                        pageForLoad = state.pageForLoad + 1,
                         data = state.data + action.data,
                         loading = false
                 )
+                is InternalAction.LoadEmptyDataAction -> state.copy(loading = false)
                 else -> throw RuntimeException("Unexpected action: $action")
             }
         }
@@ -73,11 +75,12 @@ class NewsListViewModel(repository: NewsRepository): ViewModel() {
 
     sealed class InternalAction : MviAction {
         data class LoadDataSuccessAction(val data: List<NewsItem>) : InternalAction()
+        object LoadEmptyDataAction : InternalAction()
         data class LoadDataFailAction(val throwable: Throwable) : InternalAction()
     }
 
     data class UiState(
-            val currentPage: Int = 0,
+            val pageForLoad: Int = 1,
             val loading: Boolean = true,
             val error: Throwable? = null,
             val data: List<NewsItem> = listOf()

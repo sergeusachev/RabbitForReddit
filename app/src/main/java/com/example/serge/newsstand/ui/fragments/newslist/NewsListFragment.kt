@@ -52,7 +52,8 @@ class NewsListFragment : Fragment(),
     override val viewActions: Observable<MviAction>
         get() = scrollObs.withLatestFrom(viewModel.getUiStateObservable())
                 .filter { pairCountState ->
-                    !pairCountState.second.loading || pairCountState.first == 0 && pairCountState.second.pageForLoad > 0
+                    (!pairCountState.second.loading && pairCountState.first > 0) ||
+                            pairCountState.first == 0 && pairCountState.second.pageForLoad > 0
                 }
                 .map { NewsListViewModel.UiAction.LoadMoreAction }
 
@@ -79,11 +80,11 @@ class NewsListFragment : Fragment(),
                             (recyclerView.layoutManager as LinearLayoutManager).itemCount) {
                         emitter.onNext((recyclerView.layoutManager as LinearLayoutManager).itemCount)
                     }
-                    if ((recyclerView.layoutManager as LinearLayoutManager).itemCount == 0) {
-                        emitter.onNext(0)
-                    }
                 }
             })
+            if ((recyclerView.layoutManager as LinearLayoutManager).itemCount == 0) {
+                emitter.onNext(0)
+            }
         }
 
         /*adapterObservable = Observable.create<Int> { emitter ->

@@ -2,6 +2,7 @@ package com.example.serge.newsstand.ui.fragments.newslist
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
 import com.example.serge.newsstand.pagination.MviAction
 import com.example.serge.newsstand.pagination.MviView
+import com.example.serge.newsstand.pagination.getScrollObservable
 import dagger.android.support.AndroidSupportInjection
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -50,10 +52,15 @@ class NewsListFragment : Fragment(),
                 .map { NewsListViewModel.UiAction.LoadMoreAction }*/
 
     override val viewActions: Observable<MviAction>
-        get() = scrollObs.withLatestFrom(viewModel.getUiStateObservable())
+        get() = scrollObs
+                .distinctUntilChanged()
+                .doOnNext { Log.d(MVI_DEBUG_TAG, "SCROLL INT: $it") }
+                .withLatestFrom(viewModel.getUiStateObservable())
+                .doOnNext { pairCountState -> Log.d(MVI_DEBUG_TAG, "Items: ${pairCountState.first} Page: ${pairCountState.second.pageForLoad}") }
+                .filter { pairCountState -> !pairCountState.second.loading }
                 .filter { pairCountState ->
-                    (!pairCountState.second.loading && pairCountState.first > 0) ||
-                            pairCountState.first == 0 && pairCountState.second.pageForLoad == 1
+                    pairCountState.second.data.isNotEmpty() && pairCountState.second.pageForLoad > 1
+                            || pairCountState.second.data.isEmpty() && pairCountState.second.pageForLoad == 1
                 }
                 .map { NewsListViewModel.UiAction.LoadMoreAction }
 
@@ -71,30 +78,7 @@ class NewsListFragment : Fragment(),
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
         initRecycler()
 
-
-        scrollObs = Observable.create<Int> { emitter ->
-            recycler_news.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    if ((recyclerView.layoutManager as
-                                    LinearLayoutManager).findLastVisibleItemPosition() + 5 >
-                            (recyclerView.layoutManager as LinearLayoutManager).itemCount) {
-                        emitter.onNext((recyclerView.layoutManager as LinearLayoutManager).itemCount)
-                    }
-                }
-            })
-            if ((recycler_news.layoutManager as LinearLayoutManager).itemCount == 0) {
-                emitter.onNext(0)
-            }
-        }
-
-        /*adapterObservable = Observable.create<Int> { emitter ->
-            adapter.loadPageListener = object : NewsListAdapter.NewsAdapterLoadPageListener {
-                override fun onLoadNewPage(totalItemCount: Int) {
-                    emitter.onNext(totalItemCount)
-                }
-            }
-            if (savedInstanceState == null) emitter.onNext(0)
-        }*/
+        scrollObs = getScrollObservable(recycler_news, 5)
 
         viewModel.getUiStateObservable()
                 .observeOn(AndroidSchedulers.mainThread())
@@ -132,6 +116,7 @@ class NewsListFragment : Fragment(),
     }
 
     private fun render(state: NewsListViewModel.UiState) {
+        Log.d(MVI_DEBUG_TAG, "Render State: $state")
 
         if (state.pageForLoad == 0 && state.loading) {
             //Full progress

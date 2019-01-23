@@ -1,19 +1,24 @@
 package com.example.serge.newsstand.pagination
 
 import android.util.Log
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.ui.fragments.newslist.MVI_DEBUG_TAG
+import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModel
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.internal.util.NotificationLite.accept
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.withLatestFrom
 
 class Store<A, S>(
         private val reducer: Reducer<S, A>,
         private val middlewares: List<Middleware<A, S>>,
-        private val initialState: S
+        private val initialState: S,
+        private val initialAction: A
 ) {
     private val state = BehaviorRelay.createDefault<S>(initialState)
     private val actions = PublishRelay.create<A>()
@@ -44,6 +49,8 @@ class Store<A, S>(
                 .subscribe(actions::accept)
                 .addTo(disposable)
 
+        actions.accept(initialAction)
+
         return disposable
     }
 
@@ -63,3 +70,17 @@ interface Middleware<A, S> {
 }
 
 interface MviAction
+
+fun getScrollObservable(recylcerView: RecyclerView, threshold: Int): Observable<Int> {
+    return Observable.create<Int> { emitter ->
+        recylcerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if ((recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition() + threshold >
+                        (recyclerView.layoutManager as LinearLayoutManager).itemCount) {
+                    emitter.onNext((recyclerView.layoutManager as LinearLayoutManager).itemCount)
+                }
+            }
+        })
+        //emitter.setCancellable { recylcerView.removeOnScrollListener(qw) }
+    }
+}

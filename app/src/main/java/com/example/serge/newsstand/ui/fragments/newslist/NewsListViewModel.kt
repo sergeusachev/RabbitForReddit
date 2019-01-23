@@ -14,7 +14,8 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
     private val store: Store<MviAction, UiState> = Store(
             LoadPageReducer(),
             listOf(LoadPageMiddleware(repository)),
-            UiState()
+            UiState(),
+            UiAction.LoadMoreAction
     )
 
     private val storeDisposable = store.wire()
@@ -81,7 +82,7 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
 
     data class UiState(
             val pageForLoad: Int = 1,
-            val loading: Boolean = true,
+            val loading: Boolean = false,
             val error: Throwable? = null,
             val data: List<NewsItem> = listOf()
     )

@@ -41,13 +41,14 @@ class NewsListFragment : Fragment(),
     lateinit var viewModelFactory: NewsListViewModelFactory
 
     private lateinit var scrollObservable: Observable<MviAction>
+    private lateinit var swipeRefreshObservable: Observable<MviAction>
 
     private val compositeDisposable = CompositeDisposable()
     private lateinit var viewModel: NewsListViewModel
     private val adapter = NewsListAdapter()
 
     override val viewActions: Observable<MviAction>
-        get() = scrollObservable
+        get() = Observable.merge(scrollObservable, swipeRefreshObservable)
 
 
     override fun onAttach(context: Context?) {
@@ -70,6 +71,10 @@ class NewsListFragment : Fragment(),
                 .filter { pairCountState -> !pairCountState.second.loading }
                 .filter { it.second.pageForLoad > it.second.lastLoadedPage }
                 .map { UiAction.LoadMoreAction }
+
+        swipeRefreshObservable = Observable.create { emitter ->
+            //val swipeRefreshListener
+        }
 
         viewModel.getUiStateObservable()
                 .observeOn(AndroidSchedulers.mainThread())

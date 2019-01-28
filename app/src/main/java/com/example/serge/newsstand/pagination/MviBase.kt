@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.ui.fragments.newslist.MVI_DEBUG_TAG
 import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModel
+import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
@@ -39,6 +40,8 @@ class Store<A, S>(
                 .subscribe(actions::accept)
                 .addTo(disposable)
 
+        actions.accept(initialAction)
+
         return disposable
     }
 
@@ -48,8 +51,6 @@ class Store<A, S>(
         view.viewActions.doOnNext { Log.d(MVI_DEBUG_TAG, "Action(UI): $it") }
                 .subscribe(actions::accept)
                 .addTo(disposable)
-
-        actions.accept(initialAction)
 
         return disposable
     }
@@ -73,14 +74,10 @@ interface MviAction
 
 fun getScrollObservable(recylcerView: RecyclerView, threshold: Int): Observable<Int> {
     return Observable.create<Int> { emitter ->
-        recylcerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if ((recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition() + threshold >
-                        (recyclerView.layoutManager as LinearLayoutManager).itemCount) {
-                    emitter.onNext((recyclerView.layoutManager as LinearLayoutManager).itemCount)
-                }
-            }
-        })
-        //emitter.setCancellable { recylcerView.removeOnScrollListener(qw) }
+        val scrollListener = EndlessRecyclerOnScrollListener(
+                recylcerView.layoutManager as LinearLayoutManager,
+                threshold) { totalItems -> emitter.onNext(totalItems)}
+        recylcerView.addOnScrollListener(scrollListener)
+        emitter.setCancellable { recylcerView.removeOnScrollListener(scrollListener) }
     }
 }

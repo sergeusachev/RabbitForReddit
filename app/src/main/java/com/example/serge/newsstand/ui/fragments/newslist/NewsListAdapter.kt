@@ -1,6 +1,5 @@
 package com.example.serge.newsstand.ui.fragments.newslist
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,9 +13,8 @@ import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.card_news_item.*
 
 
-class NewsListAdapter() : RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
+class NewsListAdapter : RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>() {
 
-    var loadPageListener: NewsAdapterLoadPageListener? = null
     private val items = ArrayList<NewsItem>()
 
     override fun onCreateViewHolder(parent: ViewGroup, position: Int): NewsListViewHolder {
@@ -28,7 +26,6 @@ class NewsListAdapter() : RecyclerView.Adapter<NewsListAdapter.NewsListViewHolde
 
     override fun onBindViewHolder(holder: NewsListViewHolder, position: Int) {
         holder.bind(items[position])
-        if (position == items.size - 5) loadPageListener?.onLoadNewPage(items.size)
     }
 
     fun addAndUpdateItems(itemsToInsert: List<NewsItem>) {

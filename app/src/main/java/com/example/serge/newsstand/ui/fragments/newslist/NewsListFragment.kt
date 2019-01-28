@@ -39,29 +39,18 @@ class NewsListFragment : Fragment(),
     @Inject
     lateinit var viewModelFactory: NewsListViewModelFactory
 
-    //private lateinit var adapterObservable: Observable<Int>
     private lateinit var scrollObs: Observable<Int>
 
     private val compositeDisposable = CompositeDisposable()
     private lateinit var viewModel: NewsListViewModel
     private val adapter = NewsListAdapter()
 
-    /*override val viewActions: Observable<MviAction>
-        get() = adapterObservable
-                .distinctUntilChanged()
-                .map { NewsListViewModel.UiAction.LoadMoreAction }*/
-
     override val viewActions: Observable<MviAction>
         get() = scrollObs
                 .distinctUntilChanged()
-                .doOnNext { Log.d(MVI_DEBUG_TAG, "SCROLL INT: $it") }
                 .withLatestFrom(viewModel.getUiStateObservable())
-                .doOnNext { pairCountState -> Log.d(MVI_DEBUG_TAG, "Items: ${pairCountState.first} Page: ${pairCountState.second.pageForLoad}") }
                 .filter { pairCountState -> !pairCountState.second.loading }
-                .filter { pairCountState ->
-                    pairCountState.second.data.isNotEmpty() && pairCountState.second.pageForLoad > 1
-                            || pairCountState.second.data.isEmpty() && pairCountState.second.pageForLoad == 1
-                }
+                .filter { it.second.pageForLoad > it.second.lastLoadedPage }
                 .map { NewsListViewModel.UiAction.LoadMoreAction }
 
     override fun onAttach(context: Context?) {
@@ -118,10 +107,10 @@ class NewsListFragment : Fragment(),
     private fun render(state: NewsListViewModel.UiState) {
         Log.d(MVI_DEBUG_TAG, "Render State: $state")
 
-        if (state.pageForLoad == 0 && state.loading) {
+        if (state.pageForLoad == 1 && state.loading) {
             //Full progress
             pb_full_progress.visibility = View.VISIBLE
-        } else if (state.pageForLoad > 0 && state.loading) {
+        } else if (state.pageForLoad > 1 && state.loading) {
             //Page progress
             Toast.makeText(activity, "Page loading", Toast.LENGTH_SHORT).show()
         } else if (state.pageForLoad == 0 && state.error != null) {

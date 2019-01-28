@@ -59,11 +59,15 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
             return when (action) {
                 is UiAction.LoadMoreAction -> state.copy(loading = true)
                 is InternalAction.LoadDataSuccessAction -> state.copy(
+                        lastLoadedPage = state.lastLoadedPage + 1,
                         pageForLoad = state.pageForLoad + 1,
                         data = state.data + action.data,
                         loading = false
                 )
-                is InternalAction.LoadEmptyDataAction -> state.copy(loading = false)
+                is InternalAction.LoadEmptyDataAction -> state.copy(
+                        lastLoadedPage = state.lastLoadedPage + 1,
+                        loading = false
+                )
                 else -> throw RuntimeException("Unexpected action: $action")
             }
         }
@@ -81,6 +85,7 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
     }
 
     data class UiState(
+            val lastLoadedPage: Int = 0,
             val pageForLoad: Int = 1,
             val loading: Boolean = false,
             val error: Throwable? = null,

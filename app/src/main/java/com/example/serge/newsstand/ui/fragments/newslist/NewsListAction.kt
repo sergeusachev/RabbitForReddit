@@ -13,3 +13,7 @@ sealed class InternalAction : MviAction {
     object LoadEmptyDataAction : InternalAction()
     data class LoadDataFailAction(val throwable: Throwable) : InternalAction()
 }
+
+sealed class OutputAction : MviAction {
+
+}

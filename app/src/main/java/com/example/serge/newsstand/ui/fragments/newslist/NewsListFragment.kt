@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
 import com.example.serge.newsstand.pagination.MviAction
@@ -73,7 +74,11 @@ class NewsListFragment : Fragment(),
                 .map { UiAction.LoadMoreAction }
 
         swipeRefreshObservable = Observable.create { emitter ->
-            //val swipeRefreshListener
+            val swipeRefreshListener = SwipeRefreshLayout.OnRefreshListener {
+                emitter.onNext(UiAction.RefreshData)
+            }
+            swipeRefresh_newslist.setOnRefreshListener(swipeRefreshListener)
+            emitter.setCancellable { swipeRefresh_newslist.setOnRefreshListener(null) }
         }
 
         viewModel.getUiStateObservable()
@@ -120,16 +125,18 @@ class NewsListFragment : Fragment(),
         } else if (state.pageForLoad > 1 && state.loading) {
             //Page progress
             Toast.makeText(activity, "Page loading", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad == 0 && state.error != null) {
+        } else if (state.pageForLoad == 1 && state.error != null) {
             //Full error
             Toast.makeText(activity, "Full error", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad > 0 && state.error != null) {
+        } else if (state.pageForLoad > 1 && state.error != null) {
             //Page error
             Toast.makeText(activity, "Page error", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad == 0 && !state.loading && state.data.isEmpty()) {
+        } else if (state.pageForLoad == 1 && !state.loading && state.data.isEmpty()) {
             //Empty view
+            pb_full_progress.visibility = View.GONE
+            //Show empty view
             Toast.makeText(activity, "Empty view", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad > 0 && !state.loading && state.data.isEmpty()) {
+        } else if (state.pageForLoad > 1 && !state.loading && state.data.isEmpty()) {
             //New page is empty
             Toast.makeText(activity, "New page is empty", Toast.LENGTH_SHORT).show()
         } else if (!state.loading && state.data.isNotEmpty()) {

@@ -1,7 +1,7 @@
 package com.example.serge.newsstand.di
 
 import androidx.lifecycle.ViewModelProvider
-import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModelFactory
+import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModelFactory
 import dagger.Binds
 import dagger.Module
 

@@ -4,14 +4,12 @@ import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.serge.newsstand.ui.fragments.newslist.MVI_DEBUG_TAG
-import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModel
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import io.reactivex.internal.util.NotificationLite.accept
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.withLatestFrom
 
@@ -58,6 +56,16 @@ class Store<A, S>(
     fun uiStateObservable(): Observable<S> = state.doOnNext { Log.d(MVI_DEBUG_TAG, "State: $it") }
 }
 
+fun getScrollObservable(recylcerView: RecyclerView, threshold: Int): Observable<Int> {
+    return Observable.create<Int> { emitter ->
+        val scrollListener = EndlessRecyclerOnScrollListener(
+                recylcerView.layoutManager as LinearLayoutManager,
+                threshold) { totalItems -> emitter.onNext(totalItems) }
+        recylcerView.addOnScrollListener(scrollListener)
+        emitter.setCancellable { recylcerView.removeOnScrollListener(scrollListener) }
+    }
+}
+
 interface MviView<A> {
     val viewActions: Observable<A>
 }
@@ -71,13 +79,3 @@ interface Middleware<A, S> {
 }
 
 interface MviAction
-
-fun getScrollObservable(recylcerView: RecyclerView, threshold: Int): Observable<Int> {
-    return Observable.create<Int> { emitter ->
-        val scrollListener = EndlessRecyclerOnScrollListener(
-                recylcerView.layoutManager as LinearLayoutManager,
-                threshold) { totalItems -> emitter.onNext(totalItems)}
-        recylcerView.addOnScrollListener(scrollListener)
-        emitter.setCancellable { recylcerView.removeOnScrollListener(scrollListener) }
-    }
-}

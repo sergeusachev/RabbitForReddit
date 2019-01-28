@@ -4,7 +4,6 @@ import com.example.serge.newsstand.api.NewsApi
 import com.example.serge.newsstand.request.CategoriesEnum
 import com.example.serge.newsstand.request.CountryEnum
 import com.example.serge.newsstand.response.NewsResponse
-import com.example.serge.newsstand.ui.fragments.newslist.NewsListViewModel
 import io.reactivex.Single
 import javax.inject.Inject
 

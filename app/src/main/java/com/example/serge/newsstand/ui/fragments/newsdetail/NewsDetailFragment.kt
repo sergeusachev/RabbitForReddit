@@ -1,4 +1,4 @@
-package com.example.serge.newsstand.ui.fragments
+package com.example.serge.newsstand.ui.fragments.newsdetail
 
 import android.content.Context
 import android.os.Bundle

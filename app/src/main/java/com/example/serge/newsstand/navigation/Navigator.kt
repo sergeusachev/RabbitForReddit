@@ -1,7 +1,7 @@
 package com.example.serge.newsstand.navigation
 
 import androidx.fragment.app.FragmentManager
-import com.example.serge.newsstand.ui.fragments.NewsDetailFragment
+import com.example.serge.newsstand.ui.fragments.newsdetail.NewsDetailFragment
 import com.example.serge.newsstand.ui.fragments.newslist.NewsListFragment
 
 class Navigator(

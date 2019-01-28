@@ -1,6 +1,6 @@
 package com.example.serge.newsstand.di
 
-import com.example.serge.newsstand.ui.fragments.NewsDetailFragment
+import com.example.serge.newsstand.ui.fragments.newsdetail.NewsDetailFragment
 import com.example.serge.newsstand.ui.fragments.newslist.NewsListFragment
 import dagger.Module
 import dagger.android.ContributesAndroidInjector

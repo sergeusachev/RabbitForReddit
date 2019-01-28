@@ -1,4 +1,4 @@
-package com.example.serge.newsstand.ui.fragments.newslist
+package com.example.serge.newsstand.ui.fragments.newslist.adapter
 
 import android.view.LayoutInflater
 import android.view.View

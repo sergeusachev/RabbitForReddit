@@ -1,4 +1,4 @@
-package com.example.serge.newsstand.ui.fragments.newslist
+package com.example.serge.newsstand.ui.fragments.newslist.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

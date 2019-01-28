@@ -16,6 +16,9 @@ import com.example.serge.newsstand.navigation.Navigator
 import com.example.serge.newsstand.pagination.MviAction
 import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.pagination.getScrollObservable
+import com.example.serge.newsstand.ui.fragments.newslist.adapter.NewsListAdapter
+import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
+import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModelFactory
 import dagger.android.support.AndroidSupportInjection
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -26,8 +29,6 @@ import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
 
 val MVI_DEBUG_TAG = "MVI_DEBUG_TAGG"
-val DEBUG_TAG = NewsListFragment::class.java.simpleName
-val RESPONSE_DEBUG_TAG = "Response_debug_tag"
 
 class NewsListFragment : Fragment(),
         NewsListAdapter.NewsAdapterItemClickListener,
@@ -39,19 +40,15 @@ class NewsListFragment : Fragment(),
     @Inject
     lateinit var viewModelFactory: NewsListViewModelFactory
 
-    private lateinit var scrollObs: Observable<Int>
+    private lateinit var scrollObservable: Observable<MviAction>
 
     private val compositeDisposable = CompositeDisposable()
     private lateinit var viewModel: NewsListViewModel
     private val adapter = NewsListAdapter()
 
     override val viewActions: Observable<MviAction>
-        get() = scrollObs
-                .distinctUntilChanged()
-                .withLatestFrom(viewModel.getUiStateObservable())
-                .filter { pairCountState -> !pairCountState.second.loading }
-                .filter { it.second.pageForLoad > it.second.lastLoadedPage }
-                .map { NewsListViewModel.UiAction.LoadMoreAction }
+        get() = scrollObservable
+
 
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
@@ -67,7 +64,12 @@ class NewsListFragment : Fragment(),
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(NewsListViewModel::class.java)
         initRecycler()
 
-        scrollObs = getScrollObservable(recycler_news, 5)
+        scrollObservable = getScrollObservable(recycler_news, 5)
+                .distinctUntilChanged()
+                .withLatestFrom(viewModel.getUiStateObservable())
+                .filter { pairCountState -> !pairCountState.second.loading }
+                .filter { it.second.pageForLoad > it.second.lastLoadedPage }
+                .map { UiAction.LoadMoreAction }
 
         viewModel.getUiStateObservable()
                 .observeOn(AndroidSchedulers.mainThread())

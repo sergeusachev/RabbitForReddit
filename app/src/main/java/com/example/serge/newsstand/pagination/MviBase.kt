@@ -19,6 +19,7 @@ class Store<A, S>(
         private val initialState: S,
         private val initialAction: A
 ) {
+    private val paginationState = BehaviorRelay.createDefault<PaginationState>(initialPaginationState)
     private val state = BehaviorRelay.createDefault<S>(initialState)
     private val actions = PublishRelay.create<A>()
 
@@ -32,6 +33,10 @@ class Store<A, S>(
                 .distinctUntilChanged()
                 .subscribe(state::accept)
                 .addTo(disposable)
+
+        actions.withLatestFrom(paginationState) { action, paginationState ->
+            paginationStateReducer(action, paginationState)
+        }
 
         Observable.merge<A>(middlewares.map { it.bindMiddleware(actions, state) })
                 .doOnNext { Log.d(MVI_DEBUG_TAG, "Action(MIDDLEWARE): $it") }
@@ -53,7 +58,25 @@ class Store<A, S>(
         return disposable
     }
 
+    private fun paginationStateReducer(action: A, paginationState: PaginationState): PaginationState {
+
+    }
+
     fun uiStateObservable(): Observable<S> = state.doOnNext { Log.d(MVI_DEBUG_TAG, "State: $it") }
+
+    fun fullProgressObservable(): Observable<A> {}
+
+    fun pageProgressObservable(): Observable<A> {}
+
+    fun fullErrorObservable(): Observable<A> {}
+
+    fun pageErrorObservable(): Observable<A> {}
+
+    fun emptyViewObservable(): Observable<A> {}
+
+    fun emptyPageObservable(): Observable<A> {}
+
+    fun dataObservable(): Observable<A> {}
 }
 
 fun getScrollObservable(recylcerView: RecyclerView, threshold: Int): Observable<Int> {
@@ -79,3 +102,5 @@ interface Middleware<A, S> {
 }
 
 interface MviAction
+
+interface PaginationState

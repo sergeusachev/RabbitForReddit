@@ -88,6 +88,8 @@ class NewsListFragment : Fragment(),
                 }
                 .addTo(compositeDisposable)
 
+
+
         viewModel.bindView(this)
     }
 

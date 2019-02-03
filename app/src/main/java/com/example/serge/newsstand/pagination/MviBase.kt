@@ -3,7 +3,10 @@ package com.example.serge.newsstand.pagination
 import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.serge.newsstand.ui.fragments.newslist.InputAction
+import com.example.serge.newsstand.ui.fragments.newslist.InternalAction
 import com.example.serge.newsstand.ui.fragments.newslist.MVI_DEBUG_TAG
+import com.example.serge.newsstand.ui.fragments.newslist.OutputAction
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
@@ -14,12 +17,13 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.withLatestFrom
 
 class Store<A, S>(
+        private val sideEffectProcessor: SideEffectProcessor<PaginationState, A>,
         private val reducer: Reducer<S, A>,
         private val middlewares: List<Middleware<A, S>>,
         private val initialState: S,
         private val initialAction: A
 ) {
-    private val paginationState = BehaviorRelay.createDefault<PaginationState>(initialPaginationState)
+    private val paginationState = BehaviorRelay.createDefault<PaginationState>(PaginationState.NONE)
     private val state = BehaviorRelay.createDefault<S>(initialState)
     private val actions = PublishRelay.create<A>()
 
@@ -27,6 +31,7 @@ class Store<A, S>(
         val disposable = CompositeDisposable()
 
         actions.doOnNext { Log.d(MVI_DEBUG_TAG, "Action(MAIN): $it") }
+                .filter { it is InputAction || it is InternalAction }
                 .withLatestFrom(state) { action, state ->
                     reducer.reduce(state, action)
                 }
@@ -35,8 +40,14 @@ class Store<A, S>(
                 .addTo(disposable)
 
         actions.withLatestFrom(paginationState) { action, paginationState ->
-            paginationStateReducer(action, paginationState)
+            sideEffectProcessor.process(paginationState, action)
         }
+                .flatMap { newState_sideEffects ->
+                    paginationState.accept(newState_sideEffects.first)
+                    Observable.fromIterable(newState_sideEffects.second)
+                }
+                .subscribe(actions::accept)
+                .addTo(disposable)
 
         Observable.merge<A>(middlewares.map { it.bindMiddleware(actions, state) })
                 .doOnNext { Log.d(MVI_DEBUG_TAG, "Action(MIDDLEWARE): $it") }
@@ -57,12 +68,6 @@ class Store<A, S>(
 
         return disposable
     }
-
-    private fun paginationStateReducer(action: A, paginationState: PaginationState): PaginationState {
-
-    }
-
-    fun uiStateObservable(): Observable<S> = state.doOnNext { Log.d(MVI_DEBUG_TAG, "State: $it") }
 
     fun fullProgressObservable(): Observable<A> {}
 
@@ -97,10 +102,23 @@ interface Reducer<S, A> {
     fun reduce(state: S, action: A): S
 }
 
+interface SideEffectProcessor<S, A> {
+    fun process(state: S, action: A): Pair<S, List<A>>
+}
+
 interface Middleware<A, S> {
     fun bindMiddleware(action: Observable<A>, state: Observable<S>): Observable<A>
 }
 
 interface MviAction
 
-interface PaginationState
+sealed class PaginationState {
+    object NONE : PaginationState()
+    object PROGRESS_FULL : PaginationState()
+    object PROGRESS_PAGE : PaginationState()
+    object ERROR_FULL : PaginationState()
+    object ERROR_PAGE : PaginationState()
+    object EMPTY_FULL : PaginationState()
+    object EMPTY_PAGE : PaginationState()
+    object DATA : PaginationState()
+}

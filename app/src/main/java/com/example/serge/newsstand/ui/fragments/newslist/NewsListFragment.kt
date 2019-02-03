@@ -24,7 +24,6 @@ import dagger.android.support.AndroidSupportInjection
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.withLatestFrom
 import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
@@ -71,22 +70,15 @@ class NewsListFragment : Fragment(),
                 .withLatestFrom(viewModel.getUiStateObservable())
                 .filter { pairCountState -> !pairCountState.second.loading }
                 .filter { it.second.pageForLoad > it.second.lastLoadedPage }
-                .map { UiAction.LoadMoreAction }
+                .map { InputAction.LoadMoreAction }
 
         swipeRefreshObservable = Observable.create { emitter ->
             val swipeRefreshListener = SwipeRefreshLayout.OnRefreshListener {
-                emitter.onNext(UiAction.RefreshData)
+                emitter.onNext(InputAction.RefreshData)
             }
             swipeRefresh_newslist.setOnRefreshListener(swipeRefreshListener)
             emitter.setCancellable { swipeRefresh_newslist.setOnRefreshListener(null) }
         }
-
-        viewModel.getUiStateObservable()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { uiState ->
-                    render(uiState)
-                }
-                .addTo(compositeDisposable)
 
 
 
@@ -117,37 +109,4 @@ class NewsListFragment : Fragment(),
             }
         })
     }
-
-    private fun render(state: NewsListViewModel.UiState) {
-        Log.d(MVI_DEBUG_TAG, "Render State: $state")
-
-        if (state.pageForLoad == 1 && state.loading) {
-            //Full progress
-            pb_full_progress.visibility = View.VISIBLE
-        } else if (state.pageForLoad > 1 && state.loading) {
-            //Page progress
-            Toast.makeText(activity, "Page loading", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad == 1 && state.error != null) {
-            //Full error
-            Toast.makeText(activity, "Full error", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad > 1 && state.error != null) {
-            //Page error
-            Toast.makeText(activity, "Page error", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad == 1 && !state.loading && state.data.isEmpty()) {
-            //Empty view
-            pb_full_progress.visibility = View.GONE
-            //Show empty view
-            Toast.makeText(activity, "Empty view", Toast.LENGTH_SHORT).show()
-        } else if (state.pageForLoad > 1 && !state.loading && state.data.isEmpty()) {
-            //New page is empty
-            Toast.makeText(activity, "New page is empty", Toast.LENGTH_SHORT).show()
-        } else if (!state.loading && state.data.isNotEmpty()) {
-            //Show data
-            pb_full_progress.visibility = View.GONE
-            recycler_news.visibility = View.VISIBLE
-            adapter.addAndUpdateItems(state.data)
-        }
-    }
-
-
 }

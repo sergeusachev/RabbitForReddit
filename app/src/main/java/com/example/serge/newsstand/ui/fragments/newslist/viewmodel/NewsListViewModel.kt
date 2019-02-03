@@ -6,9 +6,10 @@ import com.example.serge.newsstand.pagination.MviAction
 import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
-import com.example.serge.newsstand.ui.fragments.newslist.UiAction
+import com.example.serge.newsstand.ui.fragments.newslist.InputAction
 import com.example.serge.newsstand.ui.fragments.newslist.middleware.LoadPageMiddleware
 import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
+import com.example.serge.newsstand.ui.fragments.newslist.reducer.PaginationSideEffectProcessor
 import io.reactivex.disposables.Disposable
 
 class NewsListViewModel(repository: NewsRepository) : ViewModel() {
@@ -22,10 +23,11 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
     )
 
     private val store: Store<MviAction, UiState> = Store(
+            PaginationSideEffectProcessor(),
             LoadPageReducer(),
             listOf(LoadPageMiddleware(repository)),
             UiState(),
-            UiAction.LoadMoreAction
+            InputAction.LoadMoreAction
     )
 
     private val storeDisposable = store.wire()
@@ -37,7 +39,7 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
 
     fun unbindView() = viewDisposable?.dispose()
 
-    fun getUiStateObservable() = store.uiStateObservable()
+//    fun getUiStateObservable() = store.uiStateObservable()
 
     override fun onCleared() {
         super.onCleared()

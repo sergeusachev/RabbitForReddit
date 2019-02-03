@@ -4,7 +4,7 @@ import com.example.serge.newsstand.pagination.Middleware
 import com.example.serge.newsstand.pagination.MviAction
 import com.example.serge.newsstand.repository.NewsRepository
 import com.example.serge.newsstand.ui.fragments.newslist.InternalAction
-import com.example.serge.newsstand.ui.fragments.newslist.UiAction
+import com.example.serge.newsstand.ui.fragments.newslist.InputAction
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.withLatestFrom
@@ -13,7 +13,7 @@ import io.reactivex.schedulers.Schedulers
 class LoadPageMiddleware(val repository: NewsRepository) : Middleware<MviAction, NewsListViewModel.UiState> {
 
     override fun bindMiddleware(action: Observable<MviAction>, state: Observable<NewsListViewModel.UiState>): Observable<MviAction> {
-        return action.ofType(UiAction.LoadMoreAction::class.java)
+        return action.ofType(InputAction.LoadMoreAction::class.java)
                 .withLatestFrom(state) { a, s -> a to s }
                 .observeOn(Schedulers.io())
                 .switchMapSingle {
@@ -22,7 +22,7 @@ class LoadPageMiddleware(val repository: NewsRepository) : Middleware<MviAction,
                                 if (newsResponse.articles.isEmpty()) InternalAction.LoadEmptyDataAction
                                 else InternalAction.LoadDataSuccessAction(newsResponse.articles)
                             }
-                            .onErrorReturn { throwable -> InternalAction.LoadDataFailAction(throwable) }
+                            .onErrorReturn { throwable -> InternalAction.LoadDataErrorAction(throwable) }
                 }
     }
 }

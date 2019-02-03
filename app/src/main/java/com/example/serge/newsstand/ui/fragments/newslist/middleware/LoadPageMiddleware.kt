@@ -3,14 +3,14 @@ package com.example.serge.newsstand.ui.fragments.newslist.middleware
 import com.example.serge.newsstand.pagination.Middleware
 import com.example.serge.newsstand.pagination.MviAction
 import com.example.serge.newsstand.repository.NewsRepository
-import com.example.serge.newsstand.ui.fragments.newslist.InternalAction
 import com.example.serge.newsstand.ui.fragments.newslist.InputAction
+import com.example.serge.newsstand.ui.fragments.newslist.InternalAction
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 
-class LoadPageMiddleware(val repository: NewsRepository) : Middleware<MviAction, NewsListViewModel.UiState> {
+class LoadPageMiddleware(val repository: NewsRepository) : Middleware {
 
     override fun bindMiddleware(action: Observable<MviAction>, state: Observable<NewsListViewModel.UiState>): Observable<MviAction> {
         return action.ofType(InputAction.LoadMoreAction::class.java)

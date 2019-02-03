@@ -6,9 +6,8 @@ import com.example.serge.newsstand.pagination.SideEffectProcessor
 import com.example.serge.newsstand.ui.fragments.newslist.InputAction
 import com.example.serge.newsstand.ui.fragments.newslist.InternalAction
 import com.example.serge.newsstand.ui.fragments.newslist.OutputAction
-import java.lang.RuntimeException
 
-class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAction> {
+class PaginationSideEffectProcessor : SideEffectProcessor {
 
     override fun process(state: PaginationState, action: MviAction): Pair<PaginationState, List<MviAction>> {
         return when (state) {
@@ -20,7 +19,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 listOf(OutputAction.ProgressFullAction(true))
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
 
             }
@@ -53,7 +52,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 )
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
             }
             PaginationState.PROGRESS_PAGE -> {
@@ -85,7 +84,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 )
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
             }
             PaginationState.ERROR_FULL -> {
@@ -99,7 +98,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 )
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
             }
             PaginationState.ERROR_PAGE -> {
@@ -113,7 +112,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 )
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
             }
             PaginationState.EMPTY_FULL -> {
@@ -127,7 +126,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 )
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
             }
             PaginationState.EMPTY_PAGE -> {
@@ -141,7 +140,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 )
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
             }
             PaginationState.DATA -> {
@@ -161,7 +160,7 @@ class PaginationSideEffectProcessor : SideEffectProcessor<PaginationState, MviAc
                                 listOf(OutputAction.ProgressPageAction(true))
                         )
                     }
-                    else -> throw RuntimeException("Illegal Action!")
+                    else -> throw RuntimeException("Illegal Action - $action")
                 }
             }
         }

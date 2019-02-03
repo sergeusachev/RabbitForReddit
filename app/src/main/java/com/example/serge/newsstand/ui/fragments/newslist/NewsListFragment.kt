@@ -15,7 +15,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
 import com.example.serge.newsstand.pagination.MviAction
-import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.pagination.getScrollObservable
 import com.example.serge.newsstand.ui.fragments.newslist.adapter.NewsListAdapter
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
@@ -24,15 +23,14 @@ import dagger.android.support.AndroidSupportInjection
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.withLatestFrom
+import io.reactivex.rxkotlin.addTo
 import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
 
 val MVI_DEBUG_TAG = "MVI_DEBUG_TAGG"
 
 class NewsListFragment : Fragment(),
-        NewsListAdapter.NewsAdapterItemClickListener,
-        MviView<MviAction> {
+        NewsListAdapter.NewsAdapterItemClickListener {
 
     @Inject
     lateinit var navigator: Navigator
@@ -40,16 +38,12 @@ class NewsListFragment : Fragment(),
     @Inject
     lateinit var viewModelFactory: NewsListViewModelFactory
 
-    private lateinit var scrollObservable: Observable<MviAction>
+    private lateinit var scrollObservable: Observable<Int>
     private lateinit var swipeRefreshObservable: Observable<MviAction>
 
     private val compositeDisposable = CompositeDisposable()
     private lateinit var viewModel: NewsListViewModel
     private val adapter = NewsListAdapter()
-
-    override val viewActions: Observable<MviAction>
-        get() = Observable.merge(scrollObservable, swipeRefreshObservable)
-
 
     override fun onAttach(context: Context?) {
         AndroidSupportInjection.inject(this)
@@ -66,11 +60,6 @@ class NewsListFragment : Fragment(),
         initRecycler()
 
         scrollObservable = getScrollObservable(recycler_news, 5)
-                .distinctUntilChanged()
-                .withLatestFrom(viewModel.getUiStateObservable())
-                .filter { pairCountState -> !pairCountState.second.loading }
-                .filter { it.second.pageForLoad > it.second.lastLoadedPage }
-                .map { InputAction.LoadMoreAction }
 
         swipeRefreshObservable = Observable.create { emitter ->
             val swipeRefreshListener = SwipeRefreshLayout.OnRefreshListener {
@@ -80,11 +69,101 @@ class NewsListFragment : Fragment(),
             emitter.setCancellable { swipeRefresh_newslist.setOnRefreshListener(null) }
         }
 
+        viewModel.fullProgressObservable()
+                .doOnNext { Log.d("SIDE_EFF", "Effect: $it") }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    if (it.show) {
+                        recycler_news.visibility = View.GONE
+                        pb_full_progress.visibility = View.VISIBLE
+                    } else {
+                        recycler_news.visibility = View.VISIBLE
+                        pb_full_progress.visibility = View.GONE
+                    }
+                }.addTo(compositeDisposable)
 
 
-        viewModel.bindView(this)
+        viewModel.pageProgressObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            if (it.show) {
+                                Toast.makeText(activity!!, "PageProgress SHOW", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(activity!!, "PageProgress HIDE", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        { it.printStackTrace() }
+                ).addTo(compositeDisposable)
+
+        viewModel.fullErrorObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            if (it.show) {
+                                Toast.makeText(activity!!, "FullError SHOW", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(activity!!, "FullError HIDE", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        { it.printStackTrace() }
+                ).addTo(compositeDisposable)
+
+        viewModel.pageErrorObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            if (it.show) {
+                                Toast.makeText(activity!!, "PageError SHOW", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(activity!!, "PageError HIDE", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        { it.printStackTrace() }
+                ).addTo(compositeDisposable)
+
+        viewModel.emptyViewObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            if (it.show) {
+                                Toast.makeText(activity!!, "EmptyView SHOW", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(activity!!, "EmptyView HIDE", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        { it.printStackTrace() }
+                ).addTo(compositeDisposable)
+
+        viewModel.emptyPageObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            if (it.show) {
+                                Toast.makeText(activity!!, "EmptyPage SHOW", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(activity!!, "EmptyPage HIDE", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        { it.printStackTrace() }
+                ).addTo(compositeDisposable)
+
+        viewModel.dataObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            adapter.addAndUpdateItems(it.items)
+                        },
+                        { it.printStackTrace() }
+                ).addTo(compositeDisposable)
+
+        if(savedInstanceState == null) {
+            viewModel.bindView(scrollObservable, swipeRefreshObservable, true)
+        } else {
+            viewModel.bindView(scrollObservable, swipeRefreshObservable, false)
+        }
+
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

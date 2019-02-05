@@ -3,6 +3,7 @@ package com.example.serge.newsstand.ui.fragments.newslist.viewmodel
 import androidx.lifecycle.ViewModel
 import com.example.serge.newsstand.model.NewsItem
 import com.example.serge.newsstand.pagination.MviAction
+import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
 import com.example.serge.newsstand.ui.fragments.newslist.InputAction
@@ -23,7 +24,6 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
     )
 
     private val store: Store = Store(
-            PaginationSideEffectProcessor(),
             LoadPageReducer(),
             listOf(LoadPageMiddleware(repository)),
             UiState(),
@@ -33,19 +33,8 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
     private val storeDisposable = store.wire()
     private var viewDisposable: Disposable? = null
 
-    fun fullProgressObservable() = store.fullProgressObservable()
-    fun pageProgressObservable() = store.pageProgressObservable()
-    fun fullErrorObservable() = store.fullErrorObservable()
-    fun pageErrorObservable() = store.pageErrorObservable()
-    fun emptyViewObservable() = store.emptyViewObservable()
-    fun emptyPageObservable() = store.emptyPageObservable()
-    fun dataObservable() = store.dataObservable()
-
-    fun bindView(
-            scrollObservable: Observable<Int>,
-            refreshObservable: Observable<MviAction>,
-            needInitialAction: Boolean) {
-        viewDisposable = store.bindView(scrollObservable, refreshObservable, needInitialAction)
+    fun bindView(mviView: MviView) {
+        viewDisposable = store.bindView(mviView)
     }
 
     fun unbindView() {

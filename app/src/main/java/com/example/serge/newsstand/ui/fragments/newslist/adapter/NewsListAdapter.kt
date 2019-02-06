@@ -29,6 +29,7 @@ class NewsListAdapter : RecyclerView.Adapter<NewsListAdapter.NewsListViewHolder>
     }
 
     fun addAndUpdateItems(itemsToInsert: List<NewsItem>) {
+        items.clear()
         items.addAll(itemsToInsert)
         notifyDataSetChanged()
     }

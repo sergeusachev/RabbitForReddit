@@ -2,15 +2,12 @@ package com.example.serge.newsstand.ui.fragments.newslist.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.example.serge.newsstand.model.NewsItem
-import com.example.serge.newsstand.pagination.MviAction
 import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
 import com.example.serge.newsstand.ui.fragments.newslist.InputAction
 import com.example.serge.newsstand.ui.fragments.newslist.middleware.LoadPageMiddleware
 import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
-import com.example.serge.newsstand.ui.fragments.newslist.reducer.PaginationSideEffectProcessor
-import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 
 class NewsListViewModel(repository: NewsRepository) : ViewModel() {

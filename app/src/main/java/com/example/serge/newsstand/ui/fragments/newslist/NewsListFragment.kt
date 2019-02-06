@@ -72,6 +72,23 @@ class NewsListFragment : Fragment(),
 
     override fun render(state: NewsListViewModel.UiState) {
 
+        if (state.data.isNotEmpty()) {
+            adapter.addAndUpdateItems(state.data)
+        }
+
+        if (state.lastLoadedPage == 0 && state.loading) {
+            //Full progress
+        } else if (state.lastLoadedPage == 0 && state.error != null) {
+            //Full error
+        } else if (state.lastLoadedPage == 1 && state.data.isEmpty()) {
+            //Empty view
+        }  else if (state.lastLoadedPage > 0 && state.loading) {
+            //Page loading
+        } else if (state.lastLoadedPage == state.pageForLoad && state.lastLoadedPage > 1) {
+            //Page empty
+        } else if (state.lastLoadedPage > 0 && state.error != null) {
+            //Page error
+        }
     }
 
     override fun onListItemClick() {

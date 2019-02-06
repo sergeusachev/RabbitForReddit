@@ -13,14 +13,3 @@ sealed class InternalAction : MviAction {
     object LoadEmptyDataAction : InternalAction()
     data class LoadDataErrorAction(val throwable: Throwable) : InternalAction()
 }
-
-sealed class OutputAction : MviAction {
-    data class ProgressFullAction(val show: Boolean): OutputAction()
-    data class ProgressPageAction(val show: Boolean): OutputAction()
-    data class FullErrorAction(val show: Boolean): OutputAction()
-    data class PageErrorAction(val show: Boolean): OutputAction()
-    data class EmptyFullAction(val show: Boolean): OutputAction()
-    data class EmptyPageAction(val show: Boolean): OutputAction()
-    data class ShowDataAction(val items: List<NewsItem>): OutputAction()
-
-}

@@ -1,12 +1,12 @@
 package com.example.serge.newsstand.ui.fragments.newslist.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.serge.newsstand.model.NewsItem
 import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
-import com.example.serge.newsstand.ui.fragments.newslist.InputAction
+import com.example.serge.newsstand.ui.fragments.newslist.InputAction.RefreshDataAction
 import com.example.serge.newsstand.ui.fragments.newslist.middleware.LoadPageMiddleware
+import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
 import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
 import io.reactivex.disposables.Disposable
 
@@ -17,14 +17,18 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
             val pageForLoad: Int = 1,
             val loading: Boolean = false,
             val error: Throwable? = null,
-            val data: List<NewsItem> = listOf()
+
+            val fullProgress: Boolean = false,
+            val fullEmpty: Boolean = false,
+            val fullError: Throwable? = null,
+            val data: List<ViewData> = listOf()
     )
 
     private val store: Store = Store(
             LoadPageReducer(),
             listOf(LoadPageMiddleware(repository)),
             UiState(),
-            InputAction.LoadMoreAction
+            RefreshDataAction
     )
 
     private val storeDisposable = store.wire()

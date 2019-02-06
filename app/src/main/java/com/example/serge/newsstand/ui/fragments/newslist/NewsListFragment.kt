@@ -16,6 +16,7 @@ import com.example.serge.newsstand.pagination.MviAction
 import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.ui.fragments.newslist.adapter.NewsListAdapter
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
+import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel.UiState
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModelFactory
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import dagger.android.support.AndroidSupportInjection
@@ -24,12 +25,9 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.fragment_news_list.*
 import javax.inject.Inject
 
-val MVI_DEBUG_TAG = "MVI_DEBUG_TAGG"
-
 class NewsListFragment : Fragment(),
         NewsListAdapter.NewsAdapterItemClickListener,
-        MviView
-{
+        MviView {
 
     @Inject
     lateinit var navigator: Navigator
@@ -70,24 +68,16 @@ class NewsListFragment : Fragment(),
         viewModel.unbindView()
     }
 
-    override fun render(state: NewsListViewModel.UiState) {
+    override fun render(state: UiState) {
+        tv_empty.visibility = if (state.fullEmpty) View.VISIBLE else View.GONE
+        tv_error.visibility = if (state.fullError != null) View.VISIBLE else View.GONE
+        pb_full_progress.visibility = if (state.fullProgress) View.VISIBLE else View.GONE
 
-        if (state.data.isNotEmpty()) {
+        if (state.data.isEmpty()) {
+            recycler_news.visibility = View.GONE
+        } else {
+            recycler_news.visibility = View.VISIBLE
             adapter.addAndUpdateItems(state.data)
-        }
-
-        if (state.lastLoadedPage == 0 && state.loading) {
-            //Full progress
-        } else if (state.lastLoadedPage == 0 && state.error != null) {
-            //Full error
-        } else if (state.lastLoadedPage == 1 && state.data.isEmpty()) {
-            //Empty view
-        }  else if (state.lastLoadedPage > 0 && state.loading) {
-            //Page loading
-        } else if (state.lastLoadedPage == state.pageForLoad && state.lastLoadedPage > 1) {
-            //Page empty
-        } else if (state.lastLoadedPage > 0 && state.error != null) {
-            //Page error
         }
     }
 
@@ -118,7 +108,7 @@ class NewsListFragment : Fragment(),
     private fun getSwipeRefreshObservable(swipeRefreshLayout: SwipeRefreshLayout): Observable<MviAction> {
         return Observable.create { emitter ->
             val swipeRefreshListener = SwipeRefreshLayout.OnRefreshListener {
-                emitter.onNext(InputAction.RefreshData)
+                emitter.onNext(InputAction.RefreshDataAction)
             }
             swipeRefreshLayout.setOnRefreshListener(swipeRefreshListener)
             emitter.setCancellable { swipeRefreshLayout.setOnRefreshListener(null) }

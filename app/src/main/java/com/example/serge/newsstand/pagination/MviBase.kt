@@ -25,8 +25,8 @@ class Store(
         val disposable = CompositeDisposable()
 
         actions.withLatestFrom(state) { action, state ->
-                    reducer.reduce(state, action)
-                }
+            reducer.reduce(state, action)
+        }
                 .distinctUntilChanged()
                 .subscribe(state::accept)
                 .addTo(disposable)

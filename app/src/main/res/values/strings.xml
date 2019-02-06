@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Newsstand</string>
+    <string name="empty_page_massage">It seems that is all. \nUpdate the list and you might be lucky =)</string>
 </resources>

@@ -1,10 +1,8 @@
 package com.example.serge.newsstand.ui.fragments.newslist.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.serge.newsstand.pagination.MviView
 import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
-import com.example.serge.newsstand.ui.fragments.newslist.InputAction.RefreshDataAction
 import com.example.serge.newsstand.ui.fragments.newslist.middleware.LoadPageMiddleware
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
 import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
@@ -28,13 +26,13 @@ class NewsListViewModel(repository: NewsRepository) : ViewModel() {
             LoadPageReducer(),
             listOf(LoadPageMiddleware(repository)),
             UiState(),
-            RefreshDataAction
+            LoadPageReducer.InputAction.RefreshDataAction
     )
 
     private val storeDisposable = store.wire()
     private var viewDisposable: Disposable? = null
 
-    fun bindView(mviView: MviView) {
+    fun bindView(mviView: Store.MviView) {
         viewDisposable = store.bindView(mviView)
     }
 

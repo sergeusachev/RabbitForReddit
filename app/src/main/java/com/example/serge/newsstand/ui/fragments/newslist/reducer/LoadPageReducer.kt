@@ -1,29 +1,35 @@
 package com.example.serge.newsstand.ui.fragments.newslist.reducer
 
-import com.example.serge.newsstand.pagination.MviAction
-import com.example.serge.newsstand.pagination.Reducer
-import com.example.serge.newsstand.ui.fragments.newslist.InputAction.LoadMoreAction
-import com.example.serge.newsstand.ui.fragments.newslist.InputAction.RefreshDataAction
-import com.example.serge.newsstand.ui.fragments.newslist.InternalAction.LoadDataSuccessAction
-import com.example.serge.newsstand.ui.fragments.newslist.InternalAction.LoadEmptyDataAction
+import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.ui.fragments.newslist.model.EmptyViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.LoadingViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel.UiState
 
-class LoadPageReducer : Reducer {
+class LoadPageReducer : Store.Reducer {
 
-    override fun reduce(state: UiState, action: MviAction): UiState {
+    sealed class InputAction : Store.MviAction {
+        object LoadMoreAction : InputAction()
+        object RefreshDataAction : InputAction()
+    }
+
+    sealed class InternalAction : Store.MviAction {
+        data class LoadDataSuccessAction(val data: List<ViewData>) : InternalAction()
+        object LoadEmptyDataAction : InternalAction()
+        data class LoadDataErrorAction(val throwable: Throwable) : InternalAction()
+    }
+
+    override fun reduce(state: UiState, action: Store.MviAction): UiState {
         return when (action) {
-            is LoadMoreAction -> reduceInternal(state, action)
-            is LoadDataSuccessAction -> reduceInternal(state, action)
-            is LoadEmptyDataAction -> reduceInternal(state, action)
-            is RefreshDataAction ->reduceInternal(state, action)
+            is InputAction.LoadMoreAction -> reduceInternal(state, action)
+            is InternalAction.LoadDataSuccessAction -> reduceInternal(state, action)
+            is InternalAction.LoadEmptyDataAction -> reduceInternal(state, action)
+            is InputAction.RefreshDataAction ->reduceInternal(state, action)
             else -> throw RuntimeException("Unexpected action: $action")
         }
     }
 
-    private fun reduceInternal(state: UiState, action: RefreshDataAction): UiState {
+    private fun reduceInternal(state: UiState, action: InputAction.RefreshDataAction): UiState {
         return when {
             state.lastLoadedPage == 0 -> {
                 state.copy(
@@ -47,7 +53,7 @@ class LoadPageReducer : Reducer {
         }
     }
 
-    private fun reduceInternal(state: UiState, action: LoadEmptyDataAction): UiState {
+    private fun reduceInternal(state: UiState, action: InternalAction.LoadEmptyDataAction): UiState {
         return when {
             state.lastLoadedPage == 0 -> {
                 state.copy(
@@ -71,7 +77,7 @@ class LoadPageReducer : Reducer {
         }
     }
 
-    private fun reduceInternal(state: UiState, action: LoadMoreAction): UiState {
+    private fun reduceInternal(state: UiState, action: InputAction.LoadMoreAction): UiState {
         return when {
             state.lastLoadedPage > 0 -> {
                 state.copy(
@@ -83,7 +89,7 @@ class LoadPageReducer : Reducer {
         }
     }
 
-    private fun reduceInternal(state: UiState, action: LoadDataSuccessAction): UiState {
+    private fun reduceInternal(state: UiState, action: InternalAction.LoadDataSuccessAction): UiState {
         return when {
             state.lastLoadedPage == 0 -> {
                 state.copy(
@@ -94,7 +100,7 @@ class LoadPageReducer : Reducer {
                         fullProgress = false,
                         fullEmpty = false,
                         fullError = null,
-                        data = state.data + action.data
+                        data = action.data
                 )
             }
             state.lastLoadedPage > 0 -> {
@@ -111,19 +117,12 @@ class LoadPageReducer : Reducer {
         }
     }
 
-    private fun removeLast(data: List<ViewData>): List<ViewData> = data.subList(0, data.size - 2)
+    private fun removeLast(data: List<ViewData>): List<ViewData> = data.subList(0, data.size - 1)
 
     private fun addPageLoadingViewType(data: List<ViewData>): List<ViewData> {
         val newList = mutableListOf<ViewData>()
         newList.addAll(data)
         newList.add(LoadingViewData)
-        return newList
-    }
-
-    private fun addEmptyViewType(data: List<ViewData>): List<ViewData> {
-        val newList = mutableListOf<ViewData>()
-        newList.addAll(data)
-        newList.add(EmptyViewData)
         return newList
     }
 

@@ -1,37 +1,32 @@
 package com.example.serge.newsstand.ui.fragments.newslist.middleware
 
-import android.util.Log
 import com.example.serge.newsstand.model.NewsItem
-import com.example.serge.newsstand.pagination.Middleware
-import com.example.serge.newsstand.pagination.MviAction
+import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
-import com.example.serge.newsstand.ui.fragments.newslist.InputAction.LoadMoreAction
-import com.example.serge.newsstand.ui.fragments.newslist.InputAction.RefreshDataAction
-import com.example.serge.newsstand.ui.fragments.newslist.InternalAction
 import com.example.serge.newsstand.ui.fragments.newslist.model.NewsViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
+import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 
-class LoadPageMiddleware(val repository: NewsRepository) : Middleware {
+class LoadPageMiddleware(val repository: NewsRepository) : Store.Middleware {
 
-    override fun bindMiddleware(action: Observable<MviAction>, state: Observable<NewsListViewModel.UiState>): Observable<MviAction> {
-        return action.filter { act -> act is LoadMoreAction || act is RefreshDataAction }
+    override fun bindMiddleware(action: Observable<Store.MviAction>, state: Observable<NewsListViewModel.UiState>): Observable<Store.MviAction> {
+        return action.filter { act -> act is LoadPageReducer.InputAction.LoadMoreAction || act is LoadPageReducer.InputAction.RefreshDataAction }
                 .withLatestFrom(state) { a, s -> a to s }
                 .observeOn(Schedulers.io())
                 .switchMapSingle {
                     repository.getTopHeadlinesNews(it.second.pageForLoad)
                             .map { newsResponse ->
-                                Log.d("CHECK_ALL", "Total: ${newsResponse.totalResults}")
                                 mapDataToViewData(newsResponse.articles)
                             }
-                            .map<InternalAction> { viewDataList ->
-                                if (viewDataList.isEmpty()) InternalAction.LoadEmptyDataAction
-                                else InternalAction.LoadDataSuccessAction(viewDataList)
+                            .map<LoadPageReducer.InternalAction> { viewDataList ->
+                                if (viewDataList.isEmpty()) LoadPageReducer.InternalAction.LoadEmptyDataAction
+                                else LoadPageReducer.InternalAction.LoadDataSuccessAction(viewDataList)
                             }
-                            .onErrorReturn { throwable -> InternalAction.LoadDataErrorAction(throwable) }
+                            .onErrorReturn { throwable -> LoadPageReducer.InternalAction.LoadDataErrorAction(throwable) }
                 }
     }
 

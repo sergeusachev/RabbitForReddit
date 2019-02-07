@@ -8,14 +8,14 @@ enum class ViewType(val typeCode: Int) {
 
 data class NewsViewData(
         val sourceId: String?,
-        val sourceName: String,
+        val sourceName: String?,
         val author: String?,
-        val title: String,
-        val description: String,
-        val url: String,
-        val urlToImage: String,
-        val publishedAt: String,
-        val content: String
+        val title: String?,
+        val description: String?,
+        val url: String?,
+        val urlToImage: String?,
+        val publishedAt: String?,
+        val content: String?
 ) : ViewData {
     override fun getId() = url.hashCode()
     override fun getType() = ViewType.TYPE_DATA.typeCode

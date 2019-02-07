@@ -12,9 +12,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
-import com.example.serge.newsstand.pagination.MviAction
-import com.example.serge.newsstand.pagination.MviView
+import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.ui.fragments.newslist.adapter.NewsListAdapter
+import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel.UiState
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModelFactory
@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 class NewsListFragment : Fragment(),
         NewsListAdapter.NewsAdapterItemClickListener,
-        MviView {
+        Store.MviView {
 
     @Inject
     lateinit var navigator: Navigator
@@ -38,7 +38,7 @@ class NewsListFragment : Fragment(),
     override val scrollObservable: Observable<Int>
         get() = getScrollObservable(recycler_news, 5)
 
-    override val swipeRefreshObservable: Observable<MviAction>
+    override val swipeRefreshObservable: Observable<Store.MviAction>
         get() = getSwipeRefreshObservable(swipeRefresh_newslist)
 
 
@@ -105,10 +105,10 @@ class NewsListFragment : Fragment(),
         }
     }
 
-    private fun getSwipeRefreshObservable(swipeRefreshLayout: SwipeRefreshLayout): Observable<MviAction> {
+    private fun getSwipeRefreshObservable(swipeRefreshLayout: SwipeRefreshLayout): Observable<Store.MviAction> {
         return Observable.create { emitter ->
             val swipeRefreshListener = SwipeRefreshLayout.OnRefreshListener {
-                emitter.onNext(InputAction.RefreshDataAction)
+                emitter.onNext(LoadPageReducer.InputAction.RefreshDataAction)
             }
             swipeRefreshLayout.setOnRefreshListener(swipeRefreshListener)
             emitter.setCancellable { swipeRefreshLayout.setOnRefreshListener(null) }

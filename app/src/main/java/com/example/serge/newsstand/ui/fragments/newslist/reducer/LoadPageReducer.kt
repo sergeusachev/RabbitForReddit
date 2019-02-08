@@ -4,32 +4,20 @@ import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.ui.fragments.newslist.model.EmptyViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.LoadingViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
-import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel.UiState
 
 class LoadPageReducer : Store.Reducer {
 
-    sealed class InputAction : Store.MviAction {
-        object LoadMoreAction : InputAction()
-        object RefreshDataAction : InputAction()
-    }
-
-    sealed class InternalAction : Store.MviAction {
-        data class LoadDataSuccessAction(val data: List<ViewData>) : InternalAction()
-        object LoadEmptyDataAction : InternalAction()
-        data class LoadDataErrorAction(val throwable: Throwable) : InternalAction()
-    }
-
-    override fun reduce(state: UiState, action: Store.MviAction): UiState {
+    override fun reduce(state: Store.UiState, action: Store.MviAction): Store.UiState {
         return when (action) {
-            is InputAction.LoadMoreAction -> reduceInternal(state, action)
-            is InternalAction.LoadDataSuccessAction -> reduceInternal(state, action)
-            is InternalAction.LoadEmptyDataAction -> reduceInternal(state, action)
-            is InputAction.RefreshDataAction ->reduceInternal(state, action)
+            is Store.InputAction.LoadMoreAction -> reduceInternal(state, action)
+            is Store.InternalAction.LoadDataSuccessAction -> reduceInternal(state, action)
+            is Store.InternalAction.LoadEmptyDataAction -> reduceInternal(state, action)
+            is Store.InputAction.RefreshDataAction ->reduceInternal(state, action)
             else -> throw RuntimeException("Unexpected action: $action")
         }
     }
 
-    private fun reduceInternal(state: UiState, action: InputAction.RefreshDataAction): UiState {
+    private fun reduceInternal(state: Store.UiState, action: Store.InputAction.RefreshDataAction): Store.UiState {
         return when {
             state.lastLoadedPage == 0 -> {
                 state.copy(
@@ -53,7 +41,7 @@ class LoadPageReducer : Store.Reducer {
         }
     }
 
-    private fun reduceInternal(state: UiState, action: InternalAction.LoadEmptyDataAction): UiState {
+    private fun reduceInternal(state: Store.UiState, action: Store.InternalAction.LoadEmptyDataAction): Store.UiState {
         return when {
             state.lastLoadedPage == 0 -> {
                 state.copy(
@@ -77,7 +65,7 @@ class LoadPageReducer : Store.Reducer {
         }
     }
 
-    private fun reduceInternal(state: UiState, action: InputAction.LoadMoreAction): UiState {
+    private fun reduceInternal(state: Store.UiState, action: Store.InputAction.LoadMoreAction): Store.UiState {
         return when {
             state.lastLoadedPage > 0 -> {
                 state.copy(
@@ -89,7 +77,7 @@ class LoadPageReducer : Store.Reducer {
         }
     }
 
-    private fun reduceInternal(state: UiState, action: InternalAction.LoadDataSuccessAction): UiState {
+    private fun reduceInternal(state: Store.UiState, action: Store.InternalAction.LoadDataSuccessAction): Store.UiState {
         return when {
             state.lastLoadedPage == 0 -> {
                 state.copy(

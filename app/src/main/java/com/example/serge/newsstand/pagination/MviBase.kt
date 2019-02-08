@@ -1,8 +1,8 @@
 package com.example.serge.newsstand.pagination
 
+import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
 import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
-import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel.UiState
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
@@ -19,21 +19,28 @@ class Store(
         private val initialAction: MviAction
 ) {
 
-    interface MviView {
-        val scrollObservable: Observable<Int>
-        val swipeRefreshObservable: Observable<MviAction>
-        fun render(state: UiState)
+    data class UiState(
+            val lastLoadedPage: Int = 0,
+            val pageForLoad: Int = 1,
+            val loading: Boolean = false,
+            val error: Throwable? = null,
+
+            val fullProgress: Boolean = false,
+            val fullEmpty: Boolean = false,
+            val fullError: Throwable? = null,
+            val data: List<ViewData> = listOf()
+    )
+
+    sealed class InputAction : Store.MviAction {
+        object LoadMoreAction : InputAction()
+        object RefreshDataAction : InputAction()
     }
 
-    interface Reducer {
-        fun reduce(state: NewsListViewModel.UiState, action: MviAction): UiState
+    sealed class InternalAction : Store.MviAction {
+        data class LoadDataSuccessAction(val data: List<ViewData>) : InternalAction()
+        object LoadEmptyDataAction : InternalAction()
+        data class LoadDataErrorAction(val throwable: Throwable) : InternalAction()
     }
-
-    interface Middleware {
-        fun bindMiddleware(action: Observable<MviAction>, state: Observable<UiState>): Observable<MviAction>
-    }
-
-    interface MviAction
 
     private val state = BehaviorRelay.createDefault<UiState>(initialState)
     private val actions = PublishRelay.create<MviAction>()
@@ -71,7 +78,7 @@ class Store(
                         .withLatestFrom(state)
                         .filter { pairCountState -> !pairCountState.second.loading }
                         .filter { it.second.pageForLoad > it.second.lastLoadedPage }
-                        .map { LoadPageReducer.InputAction.LoadMoreAction },
+                        .map { InputAction.LoadMoreAction },
 
                 mviView.swipeRefreshObservable,
 
@@ -84,4 +91,20 @@ class Store(
 
         return disposable
     }
+
+    interface MviView {
+        val scrollObservable: Observable<Int>
+        val swipeRefreshObservable: Observable<MviAction>
+        fun render(state: UiState)
+    }
+
+    interface Reducer {
+        fun reduce(state: UiState, action: MviAction): UiState
+    }
+
+    interface Middleware {
+        fun bindMiddleware(action: Observable<MviAction>, state: Observable<UiState>): Observable<MviAction>
+    }
+
+    interface MviAction
 }

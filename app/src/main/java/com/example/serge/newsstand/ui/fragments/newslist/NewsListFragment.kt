@@ -14,9 +14,7 @@ import com.example.serge.newsstand.R
 import com.example.serge.newsstand.navigation.Navigator
 import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.ui.fragments.newslist.adapter.NewsListAdapter
-import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
-import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel.UiState
 import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModelFactory
 import com.example.serge.newsstand.utils.EndlessRecyclerOnScrollListener
 import dagger.android.support.AndroidSupportInjection
@@ -68,7 +66,7 @@ class NewsListFragment : Fragment(),
         viewModel.unbindView()
     }
 
-    override fun render(state: UiState) {
+    override fun render(state: Store.UiState) {
         tv_empty.visibility = if (state.fullEmpty) View.VISIBLE else View.GONE
         tv_error.visibility = if (state.fullError != null) View.VISIBLE else View.GONE
         pb_full_progress.visibility = if (state.fullProgress) View.VISIBLE else View.GONE
@@ -108,7 +106,7 @@ class NewsListFragment : Fragment(),
     private fun getSwipeRefreshObservable(swipeRefreshLayout: SwipeRefreshLayout): Observable<Store.MviAction> {
         return Observable.create { emitter ->
             val swipeRefreshListener = SwipeRefreshLayout.OnRefreshListener {
-                emitter.onNext(LoadPageReducer.InputAction.RefreshDataAction)
+                emitter.onNext(Store.InputAction.RefreshDataAction)
             }
             swipeRefreshLayout.setOnRefreshListener(swipeRefreshListener)
             emitter.setCancellable { swipeRefreshLayout.setOnRefreshListener(null) }

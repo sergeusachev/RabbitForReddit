@@ -5,16 +5,14 @@ import com.example.serge.newsstand.pagination.Store
 import com.example.serge.newsstand.repository.NewsRepository
 import com.example.serge.newsstand.ui.fragments.newslist.model.NewsViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
-import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
-import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.schedulers.Schedulers
 
 class LoadPageMiddleware(val repository: NewsRepository) : Store.Middleware {
 
-    override fun bindMiddleware(action: Observable<Store.MviAction>, state: Observable<NewsListViewModel.UiState>): Observable<Store.MviAction> {
-        return action.filter { act -> act is LoadPageReducer.InputAction.LoadMoreAction || act is LoadPageReducer.InputAction.RefreshDataAction }
+    override fun bindMiddleware(action: Observable<Store.MviAction>, state: Observable<Store.UiState>): Observable<Store.MviAction> {
+        return action.filter { act -> act is Store.InputAction.LoadMoreAction || act is Store.InputAction.RefreshDataAction }
                 .withLatestFrom(state) { a, s -> a to s }
                 .observeOn(Schedulers.io())
                 .switchMapSingle {
@@ -22,11 +20,11 @@ class LoadPageMiddleware(val repository: NewsRepository) : Store.Middleware {
                             .map { newsResponse ->
                                 mapDataToViewData(newsResponse.articles)
                             }
-                            .map<LoadPageReducer.InternalAction> { viewDataList ->
-                                if (viewDataList.isEmpty()) LoadPageReducer.InternalAction.LoadEmptyDataAction
-                                else LoadPageReducer.InternalAction.LoadDataSuccessAction(viewDataList)
+                            .map<Store.InternalAction> { viewDataList ->
+                                if (viewDataList.isEmpty()) Store.InternalAction.LoadEmptyDataAction
+                                else Store.InternalAction.LoadDataSuccessAction(viewDataList)
                             }
-                            .onErrorReturn { throwable -> LoadPageReducer.InternalAction.LoadDataErrorAction(throwable) }
+                            .onErrorReturn { throwable -> Store.InternalAction.LoadDataErrorAction(throwable) }
                 }
     }
 

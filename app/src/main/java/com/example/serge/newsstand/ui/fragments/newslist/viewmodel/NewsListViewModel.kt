@@ -2,7 +2,9 @@ package com.example.serge.newsstand.ui.fragments.newslist.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.example.serge.newsstand.pagination.Store
+import com.example.serge.newsstand.pagination.Store.InputAction.RefreshDataAction
 import com.example.serge.newsstand.repository.NewsRepository
+import com.example.serge.newsstand.ui.fragments.newslist.mapper.NewsListMapper
 import com.example.serge.newsstand.ui.fragments.newslist.middleware.LoadPageMiddleware
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
 import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
@@ -12,10 +14,8 @@ import io.reactivex.disposables.Disposable
 class NewsListViewModel(repository: NewsRepository) : ViewModel() {
 
     private val store: Store = Store(
-            LoadPageReducer(),
-            listOf(LoadPageMiddleware(repository)),
-            Store.UiState(),
-            Store.InputAction.RefreshDataAction
+            LoadPageReducer(NewsListMapper()),
+            listOf(LoadPageMiddleware(repository))
     )
 
     private val storeDisposable = store.wire()

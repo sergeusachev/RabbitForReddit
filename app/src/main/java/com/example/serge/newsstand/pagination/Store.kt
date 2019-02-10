@@ -1,8 +1,8 @@
 package com.example.serge.newsstand.pagination
 
+import com.example.serge.newsstand.model.NewsItem
+import com.example.serge.newsstand.pagination.Store.InputAction.RefreshDataAction
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
-import com.example.serge.newsstand.ui.fragments.newslist.reducer.LoadPageReducer
-import com.example.serge.newsstand.ui.fragments.newslist.viewmodel.NewsListViewModel
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
@@ -14,10 +14,19 @@ import io.reactivex.rxkotlin.withLatestFrom
 
 class Store(
         private val reducer: Reducer,
-        private val middlewares: List<Middleware>,
-        private val initialState: UiState,
-        private val initialAction: MviAction
+        private val middlewares: List<Middleware>
 ) {
+
+    sealed class InputAction : Store.MviAction {
+        object LoadMoreAction : InputAction()
+        object RefreshDataAction : InputAction()
+    }
+
+    sealed class InternalAction : Store.MviAction {
+        data class LoadDataSuccessAction(val data: List<NewsItem>) : InternalAction()
+        object LoadEmptyDataAction : InternalAction()
+        data class LoadDataErrorAction(val throwable: Throwable) : InternalAction()
+    }
 
     data class UiState(
             val lastLoadedPage: Int = 0,
@@ -31,17 +40,8 @@ class Store(
             val data: List<ViewData> = listOf()
     )
 
-    sealed class InputAction : Store.MviAction {
-        object LoadMoreAction : InputAction()
-        object RefreshDataAction : InputAction()
-    }
-
-    sealed class InternalAction : Store.MviAction {
-        data class LoadDataSuccessAction(val data: List<ViewData>) : InternalAction()
-        object LoadEmptyDataAction : InternalAction()
-        data class LoadDataErrorAction(val throwable: Throwable) : InternalAction()
-    }
-
+    private val initialState = UiState()
+    private val initialAction = RefreshDataAction
     private val state = BehaviorRelay.createDefault<UiState>(initialState)
     private val actions = PublishRelay.create<MviAction>()
 
@@ -95,15 +95,15 @@ class Store(
     interface MviView {
         val scrollObservable: Observable<Int>
         val swipeRefreshObservable: Observable<MviAction>
-        fun render(state: UiState)
+        fun render(uiState: UiState)
     }
 
     interface Reducer {
-        fun reduce(state: UiState, action: MviAction): UiState
+        fun reduce(uiState: UiState, action: MviAction): UiState
     }
 
     interface Middleware {
-        fun bindMiddleware(action: Observable<MviAction>, state: Observable<UiState>): Observable<MviAction>
+        fun bindMiddleware(action: Observable<MviAction>, uiState: Observable<UiState>): Observable<MviAction>
     }
 
     interface MviAction

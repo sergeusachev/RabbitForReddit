@@ -1,11 +1,12 @@
 package com.example.serge.newsstand.ui.fragments.newslist.reducer
 
 import com.example.serge.newsstand.pagination.Store
+import com.example.serge.newsstand.ui.fragments.newslist.mapper.NewsListMapper
 import com.example.serge.newsstand.ui.fragments.newslist.model.EmptyViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.LoadingViewData
 import com.example.serge.newsstand.ui.fragments.newslist.model.ViewData
 
-class LoadPageReducer : Store.Reducer {
+class LoadPageReducer(val mapper: NewsListMapper) : Store.Reducer {
 
     override fun reduce(state: Store.UiState, action: Store.MviAction): Store.UiState {
         return when (action) {
@@ -88,7 +89,7 @@ class LoadPageReducer : Store.Reducer {
                         fullProgress = false,
                         fullEmpty = false,
                         fullError = null,
-                        data = action.data
+                        data = mapper.map(action.data)
                 )
             }
             state.lastLoadedPage > 0 -> {
@@ -98,7 +99,7 @@ class LoadPageReducer : Store.Reducer {
                         loading = false,
 
                         fullProgress = false,
-                        data = removeLast(state.data) + action.data
+                        data = removeLast(state.data) + mapper.map(action.data)
                 )
             }
             else -> throw RuntimeException("Illegal state.lastLoadedPage: ${state.lastLoadedPage}")

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.serge.newsstand">
+    package="com.example.serge.rabbitforreddit">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -12,8 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name=".App">
-        <activity android:name=".ui.MainActivity">
+        android:name="com.serge.rabbitforreddit.App">
+        <activity android:name="com.serge.rabbitforreddit.ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

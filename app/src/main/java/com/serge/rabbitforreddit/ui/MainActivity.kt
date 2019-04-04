@@ -27,7 +27,8 @@ class MainActivity : AppCompatActivity(), HasSupportFragmentInjector {
         setContentView(R.layout.activity_main)
 
         if (savedInstanceState == null) {
-            navigator.openNewsListFragment()
+            //navigator.openNewsListFragment()
+            navigator.openLoginFragment()
         }
     }
 

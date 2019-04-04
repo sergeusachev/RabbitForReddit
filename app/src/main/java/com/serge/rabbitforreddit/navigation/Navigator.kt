@@ -1,12 +1,19 @@
 package com.serge.rabbitforreddit.navigation
 
 import androidx.fragment.app.FragmentManager
+import com.serge.rabbitforreddit.ui.fragments.login.LoginFragment
 import com.serge.rabbitforreddit.ui.fragments.newsdetail.NewsDetailFragment
 import com.serge.rabbitforreddit.ui.fragments.newslist.NewsListFragment
 
 class Navigator(
         private val fragmentManager: FragmentManager,
         private val containerResId: Int) {
+
+    fun openLoginFragment() {
+        fragmentManager.beginTransaction()
+                .replace(containerResId, LoginFragment())
+                .commit()
+    }
 
     fun openNewsListFragment() {
         fragmentManager.beginTransaction()
